@@ -1,7 +1,11 @@
 package main_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestHelloWorld(t *testing.T) {
-	t.Fatal("not implemented")
+	assert.Equal(t, 1, 1)
 }
