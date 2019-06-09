@@ -7,6 +7,9 @@ jobs:
     working_directory: /go/src/github.com/reaandrew/maul
     steps:
       - checkout
+      - run: go get -u github.com/tcnksm/ghr
+      - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
       - run: go test -v ./...
-      - run: go build 
+      - run: goxz -d out
+      - run: ghr v0.1.0 out
