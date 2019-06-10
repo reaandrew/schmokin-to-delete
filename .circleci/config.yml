@@ -11,5 +11,6 @@ jobs:
       - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
       - run: go test -v ./...
+      - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
       - run: ghr v0.2.0 out
