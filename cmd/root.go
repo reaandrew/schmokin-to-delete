@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/reaandrew/surge/client"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -26,10 +27,11 @@ import (
 )
 
 var cfgFile string
+var urlFile string
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "maul",
+	Use:   "surge",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -38,8 +40,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cmd.Println("Hello, World!")
-		return nil
+		fmt.Print("We are in")
+		return client.Surge{UrlFilePath: urlFile}.Run()
 	},
 }
 
@@ -59,7 +61,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.maul.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
+	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
