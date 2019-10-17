@@ -11,8 +11,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/reaandrew/surge/cmd"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 )
 
 func executeCommand(root *cobra.Command, args ...string) (output string, err error) {
@@ -33,12 +35,15 @@ func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, out
 }
 
 func startHTTPServer(callback func(r http.Request)) *http.Server {
-	srv := &http.Server{Addr: ":8080"}
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r := mux.NewRouter()
+	r.Handle("/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callback(*r)
 		io.WriteString(w, "hello world\n")
-	})
+	}))
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
 
 	go func() {
 		// returns ErrServerClosed on graceful close
@@ -78,6 +83,33 @@ http://localhost:8080/5`
 
 	output, err := executeCommand(cmd.RootCmd, "-u", file.Name())
 	fmt.Println(urlsVisited, output)
+
+	if err := srv.Shutdown(context.TODO()); err != nil {
+		panic(err) // failure/timeout shutting down the server gracefully
+	}
+}
+
+func TestSupportForVerbPut(t *testing.T) {
+	fileContents := `-X PUT http://localhost:8080/1
+http://localhost:8080/2 -X PUT`
+
+	//Write the urls to a file
+	//Pass the urls file path in as a -u flag
+	file, err := ioutil.TempFile(os.TempDir(), "prefix")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+	ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
+
+	methods := []string{}
+	srv := startHTTPServer(func(r http.Request) {
+		methods = append(methods, r.Method)
+	})
+
+	executeCommand(cmd.RootCmd, "-u", file.Name())
+
+	assert.Equal(t, methods, []string{"PUT", "PUT"})
 
 	if err := srv.Shutdown(context.TODO()); err != nil {
 		panic(err) // failure/timeout shutting down the server gracefully

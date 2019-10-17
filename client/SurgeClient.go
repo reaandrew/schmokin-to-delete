@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 type Surge struct {
@@ -19,11 +22,25 @@ func (surge Surge) Run() error {
 		client := http.Client{}
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			request, err := http.NewRequest("GET", scanner.Text(), nil)
-			if err != nil {
-				return err
+			line := scanner.Text()
+
+			var verb string
+
+			command := &cobra.Command{
+				Args: cobra.ExactArgs(1),
+				RunE: func(cmd *cobra.Command, args []string) error {
+					request, err := http.NewRequest(verb, args[0], nil)
+					if err != nil {
+						return err
+					}
+					client.Do(request)
+					return nil
+				},
 			}
-			client.Do(request)
+			command.PersistentFlags().StringVarP(&verb, "verb", "X", "GET", "")
+			command.SetArgs(strings.Fields(line))
+			command.Execute()
+
 		}
 
 		if err := scanner.Err(); err != nil {
