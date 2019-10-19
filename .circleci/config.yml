@@ -13,4 +13,4 @@ jobs:
       - run: go test -v ./...
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
-      - run: ghr $(git describe) out
+      - run: ghr "$CIRCLE_TAG" out
