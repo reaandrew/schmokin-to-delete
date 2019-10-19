@@ -14,7 +14,7 @@ jobs:
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
       - run: ghr -n "latest" out
-	deploy:
+  deploy:
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/reaandrew/surge
@@ -34,5 +34,5 @@ workflows:
     jobs:
       - deploy:
           filters:
-						tags:
-							only: /v.*/
+            tags:
+              only: /v.*/
