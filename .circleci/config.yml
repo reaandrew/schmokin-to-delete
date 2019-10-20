@@ -19,14 +19,11 @@ jobs:
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
       - persist_to_workspace:
-        # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is 
-        # taken to be the root directory of the workspace.
-        root: out
+          root: out
   publish:
     executor: my-executor
     steps:
       - attach_workspace:
-          # Must be absolute path or relative path from working_directory
           at: /go/src/github.com/reaandrew/surge
       - run: ghr -n "latest" "$CIRCLE_TAG" out
 
