@@ -1,15 +1,11 @@
 # Golang CircleCI 2.0 configuration file
 version: 2
 
-executors:
-  my-executor:
+jobs:
+  build:
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/reaandrew/surge
-
-jobs:
-  build:
-    executor: my-executor
     steps:
       - checkout
       - run: go get -u github.com/tcnksm/ghr
@@ -19,9 +15,11 @@ jobs:
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
       - persist_to_workspace:
-          root: out
+          root: /go/src/github.com/reaandrew/surge/out
   publish:
-    executor: my-executor
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - attach_workspace:
           at: /go/src/github.com/reaandrew/surge
