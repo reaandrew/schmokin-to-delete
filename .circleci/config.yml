@@ -31,7 +31,9 @@ workflows:
     jobs:
       - build
       - publish:
+          requires:
+            - build
           filters:
             tags:
-              only: /v[\d\.^-]+/
+              only: /[^-]+/
           
