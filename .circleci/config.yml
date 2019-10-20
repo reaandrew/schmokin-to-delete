@@ -8,7 +8,6 @@ jobs:
     working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - checkout
-      - run: go get -u github.com/tcnksm/ghr
       - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
       - run: go test -v ./...
@@ -23,6 +22,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /go/src/github.com/reaandrew/surge
+      - run: go get -u github.com/tcnksm/ghr
       - run: ghr -n "latest" "$CIRCLE_TAG" out
 
 workflows:
