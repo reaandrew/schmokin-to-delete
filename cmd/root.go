@@ -28,6 +28,7 @@ import (
 
 var cfgFile string
 var urlFile string
+var random bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -40,8 +41,10 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Print("We are in")
-		return client.Surge{UrlFilePath: urlFile}.Run()
+		return client.Surge{
+			UrlFilePath: urlFile,
+			Random:      random,
+		}.Run()
 	},
 }
 
@@ -62,6 +65,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
+	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -80,9 +84,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".maul" (without extension).
+		// Search config in home directory with name ".surge" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".maul")
+		viper.SetConfigName(".surge")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

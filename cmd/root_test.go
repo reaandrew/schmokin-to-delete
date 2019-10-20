@@ -3,12 +3,13 @@ package cmd_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -61,57 +62,83 @@ func startHTTPServer(callback func(r http.Request)) *http.Server {
 }
 
 func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
-	fileContents := `http://localhost:8080/1
-http://localhost:8080/2
-http://localhost:8080/3
-http://localhost:8080/4
-http://localhost:8080/5`
-
-	//Write the urls to a file
-	//Pass the urls file path in as a -u flag
-	file, err := ioutil.TempFile(os.TempDir(), "prefix")
-	if err != nil {
-		log.Fatal(err)
-	}
+	file := CreateTestFile([]string{"http://localhost:8080/1",
+		"http://localhost:8080/2",
+		"http://localhost:8080/3",
+		"http://localhost:8080/4",
+		"http://localhost:8080/5",
+	})
 	defer os.Remove(file.Name())
-	ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
 
 	urlsVisited := []string{}
 	srv := startHTTPServer(func(r http.Request) {
 		urlsVisited = append(urlsVisited, r.RequestURI)
 	})
+	defer srv.Shutdown(context.TODO())
 
-	output, err := executeCommand(cmd.RootCmd, "-u", file.Name())
-	fmt.Println(urlsVisited, output)
+	executeCommand(cmd.RootCmd, "-u", file.Name())
 
-	if err := srv.Shutdown(context.TODO()); err != nil {
-		panic(err) // failure/timeout shutting down the server gracefully
-	}
+	assert.Equal(t, len(urlsVisited), 5)
 }
 
 func TestSupportForVerbPut(t *testing.T) {
-	fileContents := `-X PUT http://localhost:8080/1
-http://localhost:8080/2 -X PUT`
-
-	//Write the urls to a file
-	//Pass the urls file path in as a -u flag
-	file, err := ioutil.TempFile(os.TempDir(), "prefix")
-	if err != nil {
-		log.Fatal(err)
-	}
+	file := CreateTestFile([]string{
+		"-X PUT http://localhost:8080/1",
+		"http://localhost:8080/2 -X PUT",
+	})
 	defer os.Remove(file.Name())
-	ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
 
 	methods := []string{}
 	srv := startHTTPServer(func(r http.Request) {
 		methods = append(methods, r.Method)
 	})
+	defer srv.Shutdown(context.TODO())
 
 	executeCommand(cmd.RootCmd, "-u", file.Name())
 
 	assert.Equal(t, methods, []string{"PUT", "PUT"})
+}
 
-	if err := srv.Shutdown(context.TODO()); err != nil {
-		panic(err) // failure/timeout shutting down the server gracefully
+func CreateTestFile(lines []string) *os.File {
+	fileContents := strings.Join(lines, "\n")
+	file, err := ioutil.TempFile(os.TempDir(), "prefix")
+	if err != nil {
+		panic(err)
 	}
+	ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
+	return file
+}
+
+func MapStrings(array []string, delegate func(value string) string) (values []string) {
+	for _, value := range array {
+		values = append(values, delegate(value))
+	}
+	return
+}
+
+func TestSupportForRandomOrder(t *testing.T) {
+	urls := func() []string {
+		returnUrls := []string{}
+		for i := 0; i < 10; i++ {
+			returnUrls = append(returnUrls, "http://localhost:8080/"+strconv.Itoa(i))
+		}
+		return returnUrls
+	}()
+	file := CreateTestFile(urls)
+	defer os.Remove(file.Name())
+
+	urlsVisited := []string{}
+	srv := startHTTPServer(func(r http.Request) {
+		urlsVisited = append(urlsVisited, r.RequestURI)
+	})
+	defer srv.Shutdown(context.TODO())
+
+	output, err := executeCommand(cmd.RootCmd, "-u", file.Name(), "-r")
+	assert.Nil(t, err, output)
+
+	urlPaths := MapStrings(urls, func(value string) string {
+		items := strings.Split(value, "/")
+		return "/" + items[len(items)-1]
+	})
+	assert.NotEqual(t, urlsVisited, urlPaths)
 }
