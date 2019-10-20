@@ -14,14 +14,14 @@ jobs:
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
       - persist_to_workspace:
-          root: /go/src/github.com/reaandrew/surge/out
+          root: out
   publish:
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - attach_workspace:
-          at: /go/src/github.com/reaandrew/surge
+          at: out
       - run: go get -u github.com/tcnksm/ghr
       - run: ghr -u reaandrew -n "latest" "$CIRCLE_TAG" out
 
