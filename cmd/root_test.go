@@ -5,11 +5,11 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
+
+var m = sync.Mutex{}
 
 func executeCommand(root *cobra.Command, args ...string) (output string, err error) {
 	_, output, err = executeCommandC(root, args...)
@@ -28,7 +30,6 @@ func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, out
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
-
 	c, err = root.ExecuteC()
 
 	return c, buf.String(), err
@@ -38,7 +39,9 @@ func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, out
 func startHTTPServer(callback func(r http.Request)) *http.Server {
 	r := mux.NewRouter()
 	r.Handle("/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.Lock()
 		callback(*r)
+		m.Unlock()
 		io.WriteString(w, "hello world\n")
 	}))
 	srv := &http.Server{
@@ -46,16 +49,7 @@ func startHTTPServer(callback func(r http.Request)) *http.Server {
 		Handler: r,
 	}
 
-	go func() {
-		// returns ErrServerClosed on graceful close
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			// NOTE: there is a chance that next line won't have time to run,
-			// as main() doesn't wait for this goroutine to stop. don't use
-			// code with race conditions like these for production. see post
-			// comments below on more discussion on how to handle this.
-			log.Fatalf("ListenAndServe(): %s", err)
-		}
-	}()
+	go srv.ListenAndServe()
 
 	// returning reference so caller can call Shutdown()
 	return srv
@@ -141,4 +135,22 @@ func TestSupportForRandomOrder(t *testing.T) {
 		return "/" + items[len(items)-1]
 	})
 	assert.NotEqual(t, urlsVisited, urlPaths)
+}
+
+func TestSupportForConcurrentWorkers(t *testing.T) {
+	file := CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	var concurrentWorkerCount = 5
+	var count int
+	srv := startHTTPServer(func(r http.Request) {
+		count++
+	})
+	defer srv.Shutdown(context.TODO())
+
+	output, err := executeCommand(cmd.RootCmd, "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
+	assert.Nil(t, err, output)
+	assert.Equal(t, count, concurrentWorkerCount)
 }

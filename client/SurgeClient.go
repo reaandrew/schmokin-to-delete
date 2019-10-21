@@ -5,12 +5,30 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Surge struct {
 	UrlFilePath string
 	Random      bool
+	WorkerCount int
+}
+
+func (surge Surge) execute(lines []string) {
+	var wg sync.WaitGroup
+	for i := 0; i < surge.WorkerCount; i++ {
+		wg.Add(1)
+		go func(linesValue []string) {
+			for _, line := range linesValue {
+				var command = HttpCommand{}
+				var args = strings.Fields(line)
+				command.Execute(args)
+			}
+			wg.Done()
+		}(lines)
+	}
+	wg.Wait()
 }
 
 func (surge Surge) Run() error {
@@ -32,10 +50,7 @@ func (surge Surge) Run() error {
 			rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
 		}
 
-		for _, line := range lines {
-			args := strings.Fields(line)
-			HttpCommand{}.Execute(args)
-		}
+		surge.execute(lines)
 
 		if err := scanner.Err(); err != nil {
 			return err

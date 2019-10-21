@@ -26,9 +26,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var urlFile string
-var random bool
+var (
+	cfgFile     string
+	urlFile     string
+	random      bool
+	workerCount int
+)
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -44,6 +47,7 @@ to quickly create a Cobra application.`,
 		return client.Surge{
 			UrlFilePath: urlFile,
 			Random:      random,
+			WorkerCount: workerCount,
 		}.Run()
 	},
 }
@@ -66,6 +70,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
+	RootCmd.PersistentFlags().IntVarP(&workerCount, "worker-count", "c", 1, "The number of concurrent virtual users")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
