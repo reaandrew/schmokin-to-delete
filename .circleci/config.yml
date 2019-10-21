@@ -25,7 +25,7 @@ jobs:
       - attach_workspace:
           at: /go/src/github.com/reaandrew/surge/out
       - run: go get -u github.com/tcnksm/ghr
-      - run: ghr -u reaandrew -n "latest" "$CIRCLE_TAG" out
+      - run: ghr -u reaandrew -r surge -n "latest" "$CIRCLE_TAG" out
 
 workflows:
   version: 2
