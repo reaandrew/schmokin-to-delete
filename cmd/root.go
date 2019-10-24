@@ -31,6 +31,7 @@ var (
 	urlFile     string
 	random      bool
 	workerCount int
+	iterations  int
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -48,6 +49,7 @@ to quickly create a Cobra application.`,
 			UrlFilePath: urlFile,
 			Random:      random,
 			WorkerCount: workerCount,
+			Iterations:  iterations,
 		}.Run()
 	},
 }
@@ -71,6 +73,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
 	RootCmd.PersistentFlags().IntVarP(&workerCount, "worker-count", "c", 1, "The number of concurrent virtual users")
+	RootCmd.PersistentFlags().IntVarP(&iterations, "number-iterations", "n", 1, "The number of iterations per virtual user")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

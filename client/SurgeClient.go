@@ -13,6 +13,7 @@ type Surge struct {
 	UrlFilePath string
 	Random      bool
 	WorkerCount int
+	Iterations  int
 }
 
 func (surge Surge) execute(lines []string) {
@@ -20,7 +21,8 @@ func (surge Surge) execute(lines []string) {
 	for i := 0; i < surge.WorkerCount; i++ {
 		wg.Add(1)
 		go func(linesValue []string) {
-			for _, line := range linesValue {
+			for i := 0; i < len(linesValue) || (surge.Iterations > 0 && i < surge.Iterations); i++ {
+				line := linesValue[i%len(linesValue)]
 				var command = HttpCommand{}
 				var args = strings.Fields(line)
 				command.Execute(args)

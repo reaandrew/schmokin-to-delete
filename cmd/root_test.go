@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/reaandrew/surge/cmd"
@@ -31,6 +32,7 @@ func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, out
 	root.SetErr(buf)
 	root.SetArgs(args)
 	c, err = root.ExecuteC()
+	time.Sleep(1 * time.Millisecond)
 
 	return c, buf.String(), err
 
@@ -153,4 +155,46 @@ func TestSupportForConcurrentWorkers(t *testing.T) {
 	output, err := executeCommand(cmd.RootCmd, "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
 	assert.Equal(t, count, concurrentWorkerCount)
+}
+
+func TestSupportForNumberOfIterations(t *testing.T) {
+	file := CreateTestFile([]string{
+		"http://localhost:8080/2",
+	})
+	defer os.Remove(file.Name())
+
+	var concurrentWorkerCount = 1
+	var iterationCount = 5
+	var count int
+	srv := startHTTPServer(func(r http.Request) {
+		count++
+	})
+	defer srv.Shutdown(context.TODO())
+
+	output, err := executeCommand(cmd.RootCmd, "-u", file.Name(),
+		"-n", strconv.Itoa(iterationCount),
+		"-c", strconv.Itoa(concurrentWorkerCount))
+	assert.Nil(t, err, output)
+	assert.Equal(t, count, iterationCount)
+}
+
+func TestSupportForNumberOfIterationsWithConcurrentWorkers(t *testing.T) {
+	file := CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	var concurrentWorkerCount = 5
+	var iterationCount = 5
+	var count int
+	srv := startHTTPServer(func(r http.Request) {
+		count++
+	})
+	defer srv.Shutdown(context.TODO())
+
+	output, err := executeCommand(cmd.RootCmd, "-u", file.Name(),
+		"-n", strconv.Itoa(iterationCount),
+		"-c", strconv.Itoa(concurrentWorkerCount))
+	assert.Nil(t, err, output)
+	assert.Equal(t, count, iterationCount*concurrentWorkerCount)
 }
