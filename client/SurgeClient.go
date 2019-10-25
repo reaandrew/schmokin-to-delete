@@ -18,6 +18,7 @@ type Surge struct {
 }
 
 func (surge Surge) execute(lines []string) int {
+	var lock = sync.Mutex{}
 	transactions := 0
 	var wg sync.WaitGroup
 	for i := 0; i < surge.WorkerCount; i++ {
@@ -30,6 +31,12 @@ func (surge Surge) execute(lines []string) int {
 				}
 				var args = strings.Fields(line)
 				command.Execute(args)
+				lock.Lock()
+				transactions++
+				lock.Unlock()
+				if i > 0 && i == surge.Iterations-1 {
+					break
+				}
 			}
 			wg.Done()
 		}(lines)
