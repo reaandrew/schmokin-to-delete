@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,8 @@ func executeCommandC(root *cobra.Command, httpClient client.HttpClient, args ...
 	root.SetArgs(args)
 	cmd.HttpClient = httpClient
 	c, err = root.ExecuteC()
+
+	fmt.Println("Buffer", buf.String())
 
 	return c, buf.String(), err
 
@@ -145,4 +148,18 @@ func TestSupportForNumberOfIterationsWithConcurrentWorkers(t *testing.T) {
 		"-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
 	assert.Equal(t, len(client.Requests), iterationCount*concurrentWorkerCount)
+}
+
+func TestOutputsNumberOfTransactions(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := &client.FakeHTTPClient{}
+
+	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Transactions: 1\n")
 }

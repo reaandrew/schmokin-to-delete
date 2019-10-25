@@ -53,7 +53,7 @@ to quickly create a Cobra application.`,
 			Iterations:  iterations,
 			HttpClient:  HttpClient,
 		}.Run()
-		fmt.Println("Transactions", transactions)
+		cmd.Println(fmt.Sprintf("Transactions: %v", transactions))
 		return err
 	},
 }
