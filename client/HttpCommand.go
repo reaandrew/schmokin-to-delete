@@ -7,11 +7,10 @@ import (
 )
 
 type HttpCommand struct {
+	client HttpClient
 }
 
 func (httpCommand HttpCommand) Execute(args []string) error {
-
-	client := http.Client{}
 	var verb string
 
 	command := &cobra.Command{
@@ -21,7 +20,7 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 			if err != nil {
 				return err
 			}
-			client.Do(request)
+			httpCommand.client.Execute(request)
 			return nil
 		},
 	}

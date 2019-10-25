@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/reaandrew/surge/client"
 	"github.com/reaandrew/surge/cmd"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,7 @@ func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, out
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
+	cmd.HttpClient = client.FakeHTTPClient{}
 	c, err = root.ExecuteC()
 	time.Sleep(1 * time.Millisecond)
 

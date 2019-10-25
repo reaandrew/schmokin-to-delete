@@ -32,6 +32,7 @@ var (
 	random      bool
 	workerCount int
 	iterations  int
+	HttpClient  client.HttpClient = client.NewDefaultHttpClient()
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -45,12 +46,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return client.Surge{
+		transactions, err := client.Surge{
 			UrlFilePath: urlFile,
 			Random:      random,
 			WorkerCount: workerCount,
 			Iterations:  iterations,
+			HttpClient:  HttpClient,
 		}.Run()
+		fmt.Println("Transactions", transactions)
+		return err
 	},
 }
 
