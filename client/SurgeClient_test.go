@@ -59,6 +59,9 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 	cases := []SurgeClientAvailabilityTestCase{
 		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200, 500, 500}, ExpectedAvailability: float64(0.5)},
 		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200}, ExpectedAvailability: float64(1)},
+		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 201, 202}, ExpectedAvailability: float64(1)},
+		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200, 404, 500}, ExpectedAvailability: float64(0.5)},
+		SurgeClientAvailabilityTestCase{StatusCodes: []int{500, 500, 500, 500}, ExpectedAvailability: float64(0)},
 	}
 
 	for _, testCase := range cases {
@@ -82,40 +85,4 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 			assert.Equal(t, testCase.ExpectedAvailability, result.Availability)
 		})
 	}
-}
-
-func Test_SurgeClientReturnAvailabilityOf1(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(1)
-	client := client.Surge{
-		UrlFilePath: file.Name(),
-		WorkerCount: 1,
-		HttpClient:  client.NewFakeHTTPClient(),
-		Iterations:  1,
-	}
-	result, err := client.Run()
-
-	assert.Nil(t, err)
-	assert.Equal(t, result.Availability, float64(1))
-}
-
-func Test_SurgeClientReturnsAvailabilityOf0_5(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(10)
-	httpClient := client.NewFakeHTTPClient()
-	client := client.Surge{
-		UrlFilePath: file.Name(),
-		WorkerCount: 1,
-		HttpClient:  httpClient,
-		Iterations:  1,
-	}
-	count := 0
-	httpClient.Interceptor = func(response *http.Response) {
-		if count%2 == 0 {
-			response.StatusCode = 500
-		}
-		count++
-	}
-	result, err := client.Run()
-
-	assert.Nil(t, err)
-	assert.Equal(t, result.Availability, float64(0.5))
 }

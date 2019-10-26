@@ -27,7 +27,7 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 			if err != nil {
 				return err
 			}
-			if response.StatusCode != 200 {
+			if response.StatusCode >= 400 {
 				returnError = errors.New("Error " + strconv.Itoa(response.StatusCode))
 			}
 			return nil
