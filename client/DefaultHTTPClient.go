@@ -12,6 +12,6 @@ func NewDefaultHttpClient() DefaultHttpClient {
 	}
 }
 
-func (httpClient DefaultHttpClient) Execute(request *http.Request) {
-	httpClient.client.Do(request)
+func (httpClient DefaultHttpClient) Execute(request *http.Request) (*http.Response, error) {
+	return httpClient.client.Do(request)
 }

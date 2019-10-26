@@ -46,14 +46,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		transactions, err := client.Surge{
+		result, err := client.Surge{
 			UrlFilePath: urlFile,
 			Random:      random,
 			WorkerCount: workerCount,
 			Iterations:  iterations,
 			HttpClient:  HttpClient,
 		}.Run()
-		cmd.Println(fmt.Sprintf("Transactions: %v", transactions))
+		cmd.Println(fmt.Sprintf("Transactions: %v", result.Transactions))
+		cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
 		return err
 	},
 }

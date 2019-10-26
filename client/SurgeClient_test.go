@@ -2,6 +2,7 @@ package client_test
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/reaandrew/surge/client"
@@ -38,13 +39,83 @@ func Test_SurgeClientReturnNumberOfTransactions(t *testing.T) {
 			client := client.Surge{
 				UrlFilePath: file.Name(),
 				WorkerCount: testCase.Workers,
-				HttpClient:  &client.FakeHTTPClient{},
+				HttpClient:  client.NewFakeHTTPClient(),
 				Iterations:  testCase.Iterations,
 			}
-			transactions, err := client.Run()
+			result, err := client.Run()
 
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.ExpectedTransactions, transactions)
+			assert.Equal(t, testCase.ExpectedTransactions, result.Transactions)
 		})
 	}
+}
+
+type SurgeClientAvailabilityTestCase struct {
+	StatusCodes          []int
+	ExpectedAvailability float64
+}
+
+func Test_SurgeClientReturnsAvailability(t *testing.T) {
+	cases := []SurgeClientAvailabilityTestCase{
+		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200, 500, 500}, ExpectedAvailability: float64(0.5)},
+		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200}, ExpectedAvailability: float64(1)},
+	}
+
+	for _, testCase := range cases {
+		t.Run(fmt.Sprintf("Test_SurgeClientReturnAvailabilityOf%v%%", testCase.ExpectedAvailability*100), func(t *testing.T) {
+			file := utils.CreateRandomHttpTestFile(len(testCase.StatusCodes))
+			httpClient := client.NewFakeHTTPClient()
+			client := client.Surge{
+				UrlFilePath: file.Name(),
+				WorkerCount: 1,
+				HttpClient:  httpClient,
+				Iterations:  1,
+			}
+			count := 0
+			httpClient.Interceptor = func(response *http.Response) {
+				response.StatusCode = testCase.StatusCodes[count]
+				count++
+			}
+			result, err := client.Run()
+
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.ExpectedAvailability, result.Availability)
+		})
+	}
+}
+
+func Test_SurgeClientReturnAvailabilityOf1(t *testing.T) {
+	file := utils.CreateRandomHttpTestFile(1)
+	client := client.Surge{
+		UrlFilePath: file.Name(),
+		WorkerCount: 1,
+		HttpClient:  client.NewFakeHTTPClient(),
+		Iterations:  1,
+	}
+	result, err := client.Run()
+
+	assert.Nil(t, err)
+	assert.Equal(t, result.Availability, float64(1))
+}
+
+func Test_SurgeClientReturnsAvailabilityOf0_5(t *testing.T) {
+	file := utils.CreateRandomHttpTestFile(10)
+	httpClient := client.NewFakeHTTPClient()
+	client := client.Surge{
+		UrlFilePath: file.Name(),
+		WorkerCount: 1,
+		HttpClient:  httpClient,
+		Iterations:  1,
+	}
+	count := 0
+	httpClient.Interceptor = func(response *http.Response) {
+		if count%2 == 0 {
+			response.StatusCode = 500
+		}
+		count++
+	}
+	result, err := client.Run()
+
+	assert.Nil(t, err)
+	assert.Equal(t, result.Availability, float64(0.5))
 }

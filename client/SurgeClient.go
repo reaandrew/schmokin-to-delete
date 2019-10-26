@@ -17,9 +17,10 @@ type Surge struct {
 	HttpClient  HttpClient
 }
 
-func (surge Surge) execute(lines []string) int {
+func (surge Surge) execute(lines []string) Result {
 	var lock = sync.Mutex{}
 	transactions := 0
+	errors := 0
 	var wg sync.WaitGroup
 	for i := 0; i < surge.WorkerCount; i++ {
 		wg.Add(1)
@@ -30,8 +31,11 @@ func (surge Surge) execute(lines []string) int {
 					client: surge.HttpClient,
 				}
 				var args = strings.Fields(line)
-				command.Execute(args)
+				err := command.Execute(args)
 				lock.Lock()
+				if err != nil {
+					errors++
+				}
 				transactions++
 				lock.Unlock()
 				if i > 0 && i == surge.Iterations-1 {
@@ -42,15 +46,23 @@ func (surge Surge) execute(lines []string) int {
 		}(lines)
 	}
 	wg.Wait()
-	return transactions
+	result := Result{
+		Transactions: transactions,
+	}
+	if errors == 0 {
+		result.Availability = 1
+	} else {
+		result.Availability = float64(1 - float64(errors)/float64(transactions))
+	}
+	return result
 }
 
-func (surge Surge) Run() (int, error) {
-	transactions := 0
+func (surge Surge) Run() (result Result, err error) {
+	var file *os.File
 	if surge.UrlFilePath != "" {
-		file, err := os.Open(surge.UrlFilePath)
+		file, err = os.Open(surge.UrlFilePath)
 		if err != nil {
-			return transactions, err
+			return
 		}
 		lines := []string{}
 		scanner := bufio.NewScanner(file)
@@ -58,8 +70,8 @@ func (surge Surge) Run() (int, error) {
 			line := scanner.Text()
 			lines = append(lines, line)
 		}
-		if err := scanner.Err(); err != nil {
-			return transactions, err
+		if err = scanner.Err(); err != nil {
+			return
 		}
 
 		if surge.Random {
@@ -68,7 +80,7 @@ func (surge Surge) Run() (int, error) {
 			rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
 		}
 
-		transactions = surge.execute(lines)
+		result = surge.execute(lines)
 	}
-	return transactions, nil
+	return
 }

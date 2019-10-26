@@ -43,7 +43,7 @@ func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 	urlsVisited := []string{}
 
 	executeCommand(cmd.RootCmd, client, "-u", file.Name())
@@ -63,7 +63,7 @@ func TestSupportForVerbPut(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	methods := []string{}
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	executeCommand(cmd.RootCmd, client, "-u", file.Name())
 
@@ -85,7 +85,7 @@ func TestSupportForRandomOrder(t *testing.T) {
 	file := utils.CreateTestFile(urls)
 	defer os.Remove(file.Name())
 
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-r")
 	assert.Nil(t, err, output)
@@ -109,7 +109,7 @@ func TestSupportForConcurrentWorkers(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	var concurrentWorkerCount = 5
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
@@ -124,7 +124,7 @@ func TestSupportForNumberOfIterations(t *testing.T) {
 
 	var concurrentWorkerCount = 1
 	var iterationCount = 5
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
@@ -141,7 +141,7 @@ func TestSupportForNumberOfIterationsWithConcurrentWorkers(t *testing.T) {
 
 	var concurrentWorkerCount = 5
 	var iterationCount = 5
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
@@ -156,10 +156,24 @@ func TestOutputsNumberOfTransactions(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := &client.FakeHTTPClient{}
+	client := client.NewFakeHTTPClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-n", "1", "-c", "1")
 
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Transactions: 1\n")
+}
+
+func TestOutputsNumberOfAvailability(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+
+	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Availability: 100%\n")
 }
