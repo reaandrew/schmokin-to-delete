@@ -29,8 +29,10 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 			if err != nil {
 				returnError = err
 			} else {
-				defer response.Body.Close()
-				io.Copy(ioutil.Discard, response.Body)
+				if response.Body != nil {
+					defer response.Body.Close()
+					io.Copy(ioutil.Discard, response.Body)
+				}
 				if response.StatusCode >= 400 {
 					returnError = errors.New("Error " + strconv.Itoa(response.StatusCode))
 				}
