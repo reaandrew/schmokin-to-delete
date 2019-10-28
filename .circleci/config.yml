@@ -8,9 +8,9 @@ jobs:
     working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - checkout
+      - sonarcloud/scan
       - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
-      - sonarcloud/scan
       - run: go test -v ./...
       - run: GOOS=windows go get -u github.com/spf13/cobra
       - run: goxz -d out
@@ -18,7 +18,6 @@ jobs:
           root: .
           paths:
             - .
-
   publish:
     docker:
       - image: circleci/golang:1.12
@@ -32,10 +31,10 @@ orbs:
     sonarcloud: sonarsource/sonarcloud@1.0.0
 workflows:
   version: 2.1
-  build-deploy:
+  main:
     jobs:
       - build:
-          context: sonarcloud
+          context: SonarCloud
       - publish:
           requires:
             - build
