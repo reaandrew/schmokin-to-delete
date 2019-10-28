@@ -26,13 +26,14 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 				return err
 			}
 			response, err := httpCommand.client.Execute(request)
-			defer response.Body.Close()
-			io.Copy(ioutil.Discard, response.Body)
 			if err != nil {
-				return err
-			}
-			if response.StatusCode >= 400 {
-				returnError = errors.New("Error " + strconv.Itoa(response.StatusCode))
+				returnError = err
+			} else {
+				defer response.Body.Close()
+				io.Copy(ioutil.Discard, response.Body)
+				if response.StatusCode >= 400 {
+					returnError = errors.New("Error " + strconv.Itoa(response.StatusCode))
+				}
 			}
 			return nil
 		},

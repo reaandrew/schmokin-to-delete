@@ -7,6 +7,7 @@ Tickets
 - Specify headers
 - Specify a body
 - Specify a Cookie File for persistence and retreival
+- Supply top level headers which apply to every run
 - Suport not validating certs
 - Support AMQP
 - Support PSQL
@@ -29,7 +30,10 @@ Tickets
 - Reporting Mode
 - External tool integrations (Kibana, Grafana, Prrometheus)
 
-ERRORS:
+Validation
+ - URL FILE is at least required OR something else when the features allow it.
+
+# ERRORS:
 
 ## TCP Connection Re-use
 
@@ -78,3 +82,4 @@ github.com/reaandrew/surge/client.(*surge).worker(0xc00011acb0, 0xc0000992c0, 0x
 created by github.com/reaandrew/surge/client.(*surge).execute
         /home/parallels/go/src/github.com/reaandrew/surge/client/SurgeClient.go:54 +0x97
 ```
+
