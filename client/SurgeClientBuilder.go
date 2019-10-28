@@ -1,6 +1,10 @@
 package client
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/reaandrew/surge/utils"
+)
 
 type SurgeClientBuilder struct {
 	client *surge
@@ -12,6 +16,7 @@ func NewSurgeClientBuilder() *SurgeClientBuilder {
 			workerCount: 1,
 			iterations:  1,
 			httpClient:  NewDefaultHttpClient(),
+			timer:       &utils.DefaultTimer{},
 			lock:        sync.Mutex{},
 			waitGroup:   sync.WaitGroup{},
 		},
@@ -40,6 +45,11 @@ func (builder *SurgeClientBuilder) SetURLFilePath(value string) *SurgeClientBuil
 
 func (builder *SurgeClientBuilder) SetHTTPClient(client HttpClient) *SurgeClientBuilder {
 	builder.client.httpClient = client
+	return builder
+}
+
+func (builder *SurgeClientBuilder) SetTimer(timer utils.Timer) *SurgeClientBuilder {
+	builder.client.timer = timer
 	return builder
 }
 

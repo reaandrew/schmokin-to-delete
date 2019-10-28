@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/reaandrew/surge/utils"
 )
 
 type surge struct {
@@ -16,6 +18,7 @@ type surge struct {
 	workerCount int
 	iterations  int
 	httpClient  HttpClient
+	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
 	//TODO: Create a stats struct for these
@@ -46,12 +49,14 @@ func (surge *surge) worker(linesValue []string) {
 
 func (surge *surge) execute(lines []string) Result {
 	for i := 0; i < surge.workerCount; i++ {
+		surge.timer.Start()
 		surge.waitGroup.Add(1)
 		go surge.worker(lines)
 	}
 	surge.waitGroup.Wait()
 	result := Result{
 		Transactions: surge.transactions,
+		ElapsedTime:  surge.timer.Stop(),
 	}
 	if surge.errors == 0 {
 		result.Availability = 1

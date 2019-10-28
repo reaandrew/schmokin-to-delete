@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/reaandrew/surge/client"
 	"github.com/reaandrew/surge/utils"
@@ -86,5 +87,18 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 }
 
 func Test_SurgeClientReturnsElapsedTime(t *testing.T) {
+	file := utils.CreateRandomHttpTestFile(1)
+	httpClient := client.NewFakeHTTPClient()
+	expectedElapsed := 100 * time.Second
+	timer := &utils.FakeTimer{}
+	timer.SetElapsed(expectedElapsed)
+	surgeClient := client.NewSurgeClientBuilder().
+		SetURLFilePath(file.Name()).
+		SetHTTPClient(httpClient).
+		SetTimer(timer).
+		Build()
+	result, err := surgeClient.Run()
 
+	assert.Nil(t, err)
+	assert.Equal(t, expectedElapsed, result.ElapsedTime)
 }
