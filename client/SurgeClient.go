@@ -10,14 +10,18 @@ import (
 )
 
 type Surge struct {
-	UrlFilePath string
-	Random      bool
-	WorkerCount int
-	Iterations  int
-	HttpClient  HttpClient
+	UrlFilePath  string
+	Random       bool
+	WorkerCount  int
+	Iterations   int
+	HttpClient   HttpClient
+	lock         sync.Mutex
+	waitGroup    sync.WaitGroup
+	transactions int
+	errors       int
 }
 
-func (surge Surge) execute(lines []string) Result {
+func (surge *Surge) execute(lines []string) Result {
 	var lock = sync.Mutex{}
 	transactions := 0
 	errors := 0
