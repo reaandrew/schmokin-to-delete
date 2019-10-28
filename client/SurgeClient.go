@@ -21,47 +21,45 @@ type Surge struct {
 	errors       int
 }
 
+func (surge *Surge) worker(linesValue []string) {
+	for i := 0; i < len(linesValue) || (surge.Iterations > 0 && i < surge.Iterations); i++ {
+		line := linesValue[i%len(linesValue)]
+		var command = HttpCommand{
+			client: surge.HttpClient,
+		}
+		var args = strings.Fields(line)
+		err := command.Execute(args)
+		surge.lock.Lock()
+		if err != nil {
+			surge.errors++
+		}
+		surge.transactions++
+		surge.lock.Unlock()
+		if i > 0 && i == surge.Iterations-1 {
+			break
+		}
+	}
+	surge.waitGroup.Done()
+}
+
 func (surge *Surge) execute(lines []string) Result {
-	var lock = sync.Mutex{}
-	transactions := 0
-	errors := 0
-	var wg sync.WaitGroup
 	for i := 0; i < surge.WorkerCount; i++ {
-		wg.Add(1)
-		go func(linesValue []string) {
-			for i := 0; i < len(linesValue) || (surge.Iterations > 0 && i < surge.Iterations); i++ {
-				line := linesValue[i%len(linesValue)]
-				var command = HttpCommand{
-					client: surge.HttpClient,
-				}
-				var args = strings.Fields(line)
-				err := command.Execute(args)
-				lock.Lock()
-				if err != nil {
-					errors++
-				}
-				transactions++
-				lock.Unlock()
-				if i > 0 && i == surge.Iterations-1 {
-					break
-				}
-			}
-			wg.Done()
-		}(lines)
+		surge.waitGroup.Add(1)
+		go surge.worker(lines)
 	}
-	wg.Wait()
+	surge.waitGroup.Wait()
 	result := Result{
-		Transactions: transactions,
+		Transactions: surge.transactions,
 	}
-	if errors == 0 {
+	if surge.errors == 0 {
 		result.Availability = 1
 	} else {
-		result.Availability = float64(1 - float64(errors)/float64(transactions))
+		result.Availability = float64(1 - float64(surge.errors)/float64(surge.transactions))
 	}
 	return result
 }
 
-func (surge Surge) Run() (result Result, err error) {
+func (surge *Surge) Run() (result Result, err error) {
 	var file *os.File
 	if surge.UrlFilePath != "" {
 		file, err = os.Open(surge.UrlFilePath)
