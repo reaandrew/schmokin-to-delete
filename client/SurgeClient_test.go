@@ -36,13 +36,13 @@ func Test_SurgeClientReturnNumberOfTransactions(t *testing.T) {
 			testCase.Iterations,
 			testCase.ExpectedTransactions), func(t *testing.T) {
 			file := utils.CreateRandomHttpTestFile(testCase.Urls)
-			client := client.Surge{
-				UrlFilePath: file.Name(),
-				WorkerCount: testCase.Workers,
-				HttpClient:  client.NewFakeHTTPClient(),
-				Iterations:  testCase.Iterations,
-			}
-			result, err := client.Run()
+			surgeClient := client.NewSurgeClientBuilder().
+				SetURLFilePath(file.Name()).
+				SetWorkers(testCase.Workers).
+				SetHTTPClient(client.NewFakeHTTPClient()).
+				SetIterations(testCase.Iterations).
+				Build()
+			result, err := surgeClient.Run()
 
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.ExpectedTransactions, result.Transactions)
@@ -68,21 +68,23 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 		t.Run(fmt.Sprintf("Test_SurgeClientReturnAvailabilityOf%v%%", testCase.ExpectedAvailability*100), func(t *testing.T) {
 			file := utils.CreateRandomHttpTestFile(len(testCase.StatusCodes))
 			httpClient := client.NewFakeHTTPClient()
-			client := client.Surge{
-				UrlFilePath: file.Name(),
-				WorkerCount: 1,
-				HttpClient:  httpClient,
-				Iterations:  1,
-			}
+			surgeClient := client.NewSurgeClientBuilder().
+				SetURLFilePath(file.Name()).
+				SetHTTPClient(httpClient).
+				Build()
 			count := 0
 			httpClient.Interceptor = func(response *http.Response) {
 				response.StatusCode = testCase.StatusCodes[count]
 				count++
 			}
-			result, err := client.Run()
+			result, err := surgeClient.Run()
 
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.ExpectedAvailability, result.Availability)
 		})
 	}
+}
+
+func Test_SurgeClientReturnsElapsedTime(t *testing.T) {
+
 }
