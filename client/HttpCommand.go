@@ -2,6 +2,8 @@ package client
 
 import (
 	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -24,6 +26,8 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 				return err
 			}
 			response, err := httpCommand.client.Execute(request)
+			defer response.Body.Close()
+			io.Copy(ioutil.Discard, response.Body)
 			if err != nil {
 				return err
 			}

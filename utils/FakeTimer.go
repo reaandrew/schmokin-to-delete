@@ -17,3 +17,9 @@ func (timer *FakeTimer) Start() {
 func (timer *FakeTimer) Stop() time.Duration {
 	return timer.elapsed
 }
+
+func NewFakeTimer(duration time.Duration) *FakeTimer {
+	timer := &FakeTimer{}
+	timer.SetElapsed(duration)
+	return timer
+}

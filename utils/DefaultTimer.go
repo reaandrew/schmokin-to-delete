@@ -13,3 +13,7 @@ func (timer *DefaultTimer) Start() {
 func (timer *DefaultTimer) Stop() time.Duration {
 	return time.Since(timer.start)
 }
+
+func NewDefaultTimer() *DefaultTimer {
+	return &DefaultTimer{}
+}

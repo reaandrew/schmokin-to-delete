@@ -20,6 +20,7 @@ import (
 	"os"
 
 	"github.com/reaandrew/surge/client"
+	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -32,6 +33,7 @@ var (
 	random      bool
 	workerCount int
 	iterations  int
+	Timer       utils.Timer       = &utils.DefaultTimer{}
 	HttpClient  client.HttpClient = client.NewDefaultHttpClient()
 )
 
@@ -52,12 +54,16 @@ to quickly create a Cobra application.`,
 			SetWorkers(workerCount).
 			SetIterations(iterations).
 			SetHTTPClient(HttpClient).
+			SetTimer(Timer).
 			Build()
 
 		result, err := surgeClient.Run()
 
-		cmd.Println(fmt.Sprintf("Transactions: %v", result.Transactions))
-		cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
+		if err == nil {
+			cmd.Println(fmt.Sprintf("Transactions: %v", result.Transactions))
+			cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
+			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
+		}
 		return err
 	},
 }
@@ -79,6 +85,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
+	RootCmd.MarkPersistentFlagRequired("urls")
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
 	RootCmd.PersistentFlags().IntVarP(&workerCount, "worker-count", "c", 1, "The number of concurrent virtual users")
 	RootCmd.PersistentFlags().IntVarP(&iterations, "number-iterations", "n", 1, "The number of iterations per virtual user")

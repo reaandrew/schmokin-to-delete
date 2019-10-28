@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/reaandrew/surge/client"
 	"github.com/reaandrew/surge/cmd"
@@ -15,17 +16,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func executeCommand(root *cobra.Command, httpClient client.HttpClient, args ...string) (output string, err error) {
-	_, output, err = executeCommandC(root, httpClient, args...)
+func executeCommand(root *cobra.Command, httpClient client.HttpClient, timer utils.Timer, args ...string) (output string, err error) {
+	_, output, err = executeCommandC(root, httpClient, timer, args...)
 	return output, err
 }
 
-func executeCommandC(root *cobra.Command, httpClient client.HttpClient, args ...string) (c *cobra.Command, output string, err error) {
+func executeCommandC(root *cobra.Command, httpClient client.HttpClient, timer utils.Timer, args ...string) (c *cobra.Command, output string, err error) {
 	buf := new(bytes.Buffer)
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
 	cmd.HttpClient = httpClient
+	cmd.Timer = timer
 	c, err = root.ExecuteC()
 
 	fmt.Println("Buffer", buf.String())
@@ -46,7 +48,7 @@ func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
 	client := client.NewFakeHTTPClient()
 	urlsVisited := []string{}
 
-	executeCommand(cmd.RootCmd, client, "-u", file.Name())
+	executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
 
 	for _, request := range client.Requests {
 		urlsVisited = append(urlsVisited, request.RequestURI)
@@ -65,7 +67,7 @@ func TestSupportForVerbPut(t *testing.T) {
 	methods := []string{}
 	client := client.NewFakeHTTPClient()
 
-	executeCommand(cmd.RootCmd, client, "-u", file.Name())
+	executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
 
 	for _, request := range client.Requests {
 		methods = append(methods, request.Method)
@@ -87,7 +89,7 @@ func TestSupportForRandomOrder(t *testing.T) {
 
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-r")
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-r")
 	assert.Nil(t, err, output)
 
 	urlsVisited := []string{}
@@ -111,7 +113,7 @@ func TestSupportForConcurrentWorkers(t *testing.T) {
 	var concurrentWorkerCount = 5
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
 	assert.Equal(t, len(client.Requests), concurrentWorkerCount)
 }
@@ -126,7 +128,7 @@ func TestSupportForNumberOfIterations(t *testing.T) {
 	var iterationCount = 5
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(),
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
 		"-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
@@ -143,7 +145,7 @@ func TestSupportForNumberOfIterationsWithConcurrentWorkers(t *testing.T) {
 	var iterationCount = 5
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(),
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
 		"-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
@@ -158,7 +160,7 @@ func TestOutputsNumberOfTransactions(t *testing.T) {
 
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-n", "1", "-c", "1")
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-n", "1", "-c", "1")
 
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Transactions: 1\n")
@@ -172,8 +174,23 @@ func TestOutputsNumberOfAvailability(t *testing.T) {
 
 	client := client.NewFakeHTTPClient()
 
-	output, err := executeCommand(cmd.RootCmd, client, "-u", file.Name(), "-n", "1", "-c", "1")
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-n", "1", "-c", "1")
 
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Availability: 100%\n")
+}
+
+func TestOutputsElapsedTimeInHumanReadableForm(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+	timer := utils.NewFakeTimer(1 * time.Minute)
+
+	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Elapsed Time: 1m0s\n")
 }
