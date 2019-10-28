@@ -8,7 +8,6 @@ jobs:
     working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - checkout
-      - sonarcloud/scan
       - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
       - run: go test -v ./...
@@ -27,14 +26,11 @@ jobs:
           at: /go/src/github.com/reaandrew/surge/out
       - run: go get -u github.com/tcnksm/ghr
       - run: ghr -u reaandrew -r surge -n "latest" "$CIRCLE_TAG" out
-orbs:
-    sonarcloud: sonarsource/sonarcloud@1.0.0
 workflows:
   version: 2.1
   main:
     jobs:
       - build:
-          context: SonarCloud
       - publish:
           requires:
             - build
