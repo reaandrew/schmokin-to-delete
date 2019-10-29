@@ -194,3 +194,18 @@ func TestOutputsElapsedTimeInHumanReadableForm(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Elapsed Time: 1m0s\n")
 }
+
+func TestOutputsTotalBytesSent(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+	timer := utils.NewFakeTimer(1 * time.Minute)
+
+	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Total Bytes Sent: 41 B\n")
+}

@@ -5,18 +5,24 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
+type HttpResult struct {
+	TotalBytesSent int
+	Error          error
+}
+
 type HttpCommand struct {
 	client HttpClient
 }
 
-func (httpCommand HttpCommand) Execute(args []string) error {
+func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 	var verb string
-	var returnError error
+	var result HttpResult
 
 	command := &cobra.Command{
 		Args: cobra.ExactArgs(1),
@@ -25,16 +31,21 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 			if err != nil {
 				return err
 			}
+			requestBytes, err := httputil.DumpRequest(request, true)
+			if err != nil {
+				return err
+			}
+			result.TotalBytesSent = len(requestBytes)
 			response, err := httpCommand.client.Execute(request)
 			if err != nil {
-				returnError = err
+				result.Error = err
 			} else {
 				if response.Body != nil {
 					defer response.Body.Close()
 					io.Copy(ioutil.Discard, response.Body)
 				}
 				if response.StatusCode >= 400 {
-					returnError = errors.New("Error " + strconv.Itoa(response.StatusCode))
+					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
 				}
 			}
 			return nil
@@ -44,5 +55,5 @@ func (httpCommand HttpCommand) Execute(args []string) error {
 	command.SetArgs(args)
 	command.Execute()
 
-	return returnError
+	return result
 }

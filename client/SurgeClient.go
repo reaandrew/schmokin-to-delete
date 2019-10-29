@@ -22,8 +22,9 @@ type surge struct {
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
 	//TODO: Create a stats struct for these
-	transactions int
-	errors       int
+	transactions   int
+	errors         int
+	totalBytesSent int
 }
 
 func (surge *surge) worker(linesValue []string) {
@@ -33,12 +34,13 @@ func (surge *surge) worker(linesValue []string) {
 			client: surge.httpClient,
 		}
 		var args = strings.Fields(line)
-		err := command.Execute(args)
+		result := command.Execute(args)
 		surge.lock.Lock()
-		if err != nil {
+		if result.Error != nil {
 			surge.errors++
 		}
 		surge.transactions++
+		surge.totalBytesSent += result.TotalBytesSent
 		surge.lock.Unlock()
 		if i > 0 && i == surge.iterations-1 {
 			break
@@ -55,8 +57,9 @@ func (surge *surge) execute(lines []string) Result {
 	}
 	surge.waitGroup.Wait()
 	result := Result{
-		Transactions: surge.transactions,
-		ElapsedTime:  surge.timer.Stop(),
+		Transactions:   surge.transactions,
+		ElapsedTime:    surge.timer.Stop(),
+		TotalBytesSent: surge.totalBytesSent,
 	}
 	if surge.errors == 0 {
 		result.Availability = 1

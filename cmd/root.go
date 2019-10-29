@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dustin/go-humanize"
 	"github.com/reaandrew/surge/client"
 	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
@@ -63,6 +64,7 @@ to quickly create a Cobra application.`,
 			cmd.Println(fmt.Sprintf("Transactions: %v", result.Transactions))
 			cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
 			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
+			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
 		}
 		return err
 	},
