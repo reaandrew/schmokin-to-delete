@@ -207,5 +207,20 @@ func TestOutputsTotalBytesSent(t *testing.T) {
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
 
 	assert.Nil(t, err)
-	assert.Contains(t, output, "Total Bytes Sent: 41 B\n")
+	assert.Contains(t, output, "Total Bytes Sent: 96 B\n")
+}
+
+func TestOutputsTotalBytesReceived(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+	timer := utils.NewFakeTimer(1 * time.Minute)
+
+	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Total Bytes Received: 38 B\n")
 }

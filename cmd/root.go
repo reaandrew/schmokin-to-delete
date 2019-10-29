@@ -65,6 +65,7 @@ to quickly create a Cobra application.`,
 			cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
 			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
 			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
+			cmd.Println(fmt.Sprintf("Total Bytes Received: %v", humanize.Bytes(uint64(result.TotalBytesReceived))))
 		}
 		return err
 	},

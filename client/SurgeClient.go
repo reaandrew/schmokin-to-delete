@@ -22,9 +22,10 @@ type surge struct {
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
 	//TODO: Create a stats struct for these
-	transactions   int
-	errors         int
-	totalBytesSent int
+	transactions       int
+	errors             int
+	totalBytesSent     int
+	totalBytesReceived int
 }
 
 func (surge *surge) worker(linesValue []string) {
@@ -41,6 +42,7 @@ func (surge *surge) worker(linesValue []string) {
 		}
 		surge.transactions++
 		surge.totalBytesSent += result.TotalBytesSent
+		surge.totalBytesReceived += result.TotalBytesReceived
 		surge.lock.Unlock()
 		if i > 0 && i == surge.iterations-1 {
 			break
@@ -57,9 +59,10 @@ func (surge *surge) execute(lines []string) Result {
 	}
 	surge.waitGroup.Wait()
 	result := Result{
-		Transactions:   surge.transactions,
-		ElapsedTime:    surge.timer.Stop(),
-		TotalBytesSent: surge.totalBytesSent,
+		Transactions:       surge.transactions,
+		ElapsedTime:        surge.timer.Stop(),
+		TotalBytesSent:     surge.totalBytesSent,
+		TotalBytesReceived: surge.totalBytesReceived,
 	}
 	if surge.errors == 0 {
 		result.Availability = 1

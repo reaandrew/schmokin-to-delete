@@ -12,8 +12,9 @@ import (
 )
 
 type HttpResult struct {
-	TotalBytesSent int
-	Error          error
+	TotalBytesSent     int
+	TotalBytesReceived int
+	Error              error
 }
 
 type HttpCommand struct {
@@ -31,7 +32,7 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 			if err != nil {
 				return err
 			}
-			requestBytes, err := httputil.DumpRequest(request, true)
+			requestBytes, err := httputil.DumpRequestOut(request, true)
 			if err != nil {
 				return err
 			}
@@ -43,6 +44,11 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 				if response.Body != nil {
 					defer response.Body.Close()
 					io.Copy(ioutil.Discard, response.Body)
+				}
+				responseBytes, err := httputil.DumpResponse(response, true)
+				result.TotalBytesReceived = len(responseBytes)
+				if err != nil {
+					result.Error = err
 				}
 				if response.StatusCode >= 400 {
 					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
