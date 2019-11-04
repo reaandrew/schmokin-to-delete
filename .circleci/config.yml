@@ -27,10 +27,9 @@ jobs:
       - run: go get -u github.com/tcnksm/ghr
       - run: ghr -u reaandrew -r surge -n "latest" "$CIRCLE_TAG" out
 workflows:
-  version: 2.1
   main:
     jobs:
-      - build:
+      - build
       - publish:
           requires:
             - build
