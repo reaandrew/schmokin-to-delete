@@ -16,6 +16,7 @@ func NewSurgeClientBuilder() *SurgeClientBuilder {
 	s := metrics.NewExpDecaySample(1028, 0.015) // or metrics.NewUniformSample(1028)
 	h := metrics.NewHistogram(s)
 	m := metrics.NewMeter()
+	c := metrics.NewMeter()
 	return &SurgeClientBuilder{
 		client: &surge{
 			workerCount:     1,
@@ -26,6 +27,7 @@ func NewSurgeClientBuilder() *SurgeClientBuilder {
 			waitGroup:       sync.WaitGroup{},
 			responseTime:    h,
 			transactionRate: m,
+			concurrencyRate: c,
 		},
 	}
 }
