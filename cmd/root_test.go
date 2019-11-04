@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -238,4 +239,21 @@ func TestOutputsAverageResponseTime(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Average Response Time: 1000ms\n")
+}
+
+func TestOutputsAverageTransactionRate(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+	timer := utils.NewFakeTimer(1 * time.Minute)
+
+	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	matched, err := regexp.Match(`Average Transaction Rate: [^0][\d]+ transactions/sec`, []byte(output))
+	assert.Nil(t, err)
+	assert.True(t, matched)
 }

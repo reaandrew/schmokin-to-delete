@@ -68,6 +68,7 @@ to quickly create a Cobra application.`,
 			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
 			cmd.Println(fmt.Sprintf("Total Bytes Received: %v", humanize.Bytes(uint64(result.TotalBytesReceived))))
 			cmd.Println(fmt.Sprintf("Average Response Time: %vms", result.AverageResponseTime/(float64(time.Millisecond))))
+			cmd.Println(fmt.Sprintf("Average Transaction Rate: %.0f transactions/sec", result.TransactionRate))
 		}
 		return err
 	},

@@ -9,4 +9,5 @@ type Result struct {
 	AverageResponseTime float64
 	TotalBytesSent      int
 	TotalBytesReceived  int
+	TransactionRate     float64
 }
