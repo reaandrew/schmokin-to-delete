@@ -130,3 +130,20 @@ func Test_SurgeClientReturnsTotalBytesReceived(t *testing.T) {
 	//This is the size of one request dumped
 	assert.Equal(t, result.TotalBytesReceived, 38)
 }
+
+func Test_SurgeClientReturnsAverageResponseTime(t *testing.T) {
+	file := utils.CreateRandomHttpTestFile(1)
+	httpClient := client.NewFakeHTTPClient()
+	expectedDuration := 1 * time.Minute
+	timer := utils.NewFakeTimer(expectedDuration)
+	surgeClient := client.NewSurgeClientBuilder().
+		SetURLFilePath(file.Name()).
+		SetHTTPClient(httpClient).
+		SetTimer(timer).
+		Build()
+	result, err := surgeClient.Run()
+
+	assert.Nil(t, err)
+	//This is the size of one request dumped
+	assert.Equal(t, result.AverageResponseTime, float64(expectedDuration))
+}

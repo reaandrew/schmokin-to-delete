@@ -224,3 +224,18 @@ func TestOutputsTotalBytesReceived(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, output, "Total Bytes Received: 38 B\n")
 }
+
+func TestOutputsAverageResponseTime(t *testing.T) {
+	file := utils.CreateTestFile([]string{
+		"http://localhost:8080/1",
+	})
+	defer os.Remove(file.Name())
+
+	client := client.NewFakeHTTPClient()
+	timer := utils.NewFakeTimer(1 * time.Second)
+
+	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
+
+	assert.Nil(t, err)
+	assert.Contains(t, output, "Average Response Time: 1000ms\n")
+}

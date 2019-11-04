@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/reaandrew/surge/client"
@@ -66,6 +67,7 @@ to quickly create a Cobra application.`,
 			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
 			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
 			cmd.Println(fmt.Sprintf("Total Bytes Received: %v", humanize.Bytes(uint64(result.TotalBytesReceived))))
+			cmd.Println(fmt.Sprintf("Average Response Time: %vms", result.AverageResponseTime/(float64(time.Millisecond))))
 		}
 		return err
 	},

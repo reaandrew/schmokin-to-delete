@@ -3,6 +3,7 @@ package client
 import (
 	"sync"
 
+	"github.com/rcrowley/go-metrics"
 	"github.com/reaandrew/surge/utils"
 )
 
@@ -11,14 +12,18 @@ type SurgeClientBuilder struct {
 }
 
 func NewSurgeClientBuilder() *SurgeClientBuilder {
+
+	s := metrics.NewExpDecaySample(1028, 0.015) // or metrics.NewUniformSample(1028)
+	h := metrics.NewHistogram(s)
 	return &SurgeClientBuilder{
 		client: &surge{
-			workerCount: 1,
-			iterations:  1,
-			httpClient:  NewDefaultHttpClient(),
-			timer:       &utils.DefaultTimer{},
-			lock:        sync.Mutex{},
-			waitGroup:   sync.WaitGroup{},
+			workerCount:  1,
+			iterations:   1,
+			httpClient:   NewDefaultHttpClient(),
+			timer:        &utils.DefaultTimer{},
+			lock:         sync.Mutex{},
+			waitGroup:    sync.WaitGroup{},
+			responseTime: h,
 		},
 	}
 }

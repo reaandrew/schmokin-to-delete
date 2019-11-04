@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rcrowley/go-metrics"
 	"github.com/reaandrew/surge/utils"
 )
 
@@ -26,6 +27,7 @@ type surge struct {
 	errors             int
 	totalBytesSent     int
 	totalBytesReceived int
+	responseTime       metrics.Histogram
 }
 
 func (surge *surge) worker(linesValue []string) {
@@ -33,6 +35,7 @@ func (surge *surge) worker(linesValue []string) {
 		line := linesValue[i%len(linesValue)]
 		var command = HttpCommand{
 			client: surge.httpClient,
+			timer:  surge.timer,
 		}
 		var args = strings.Fields(line)
 		result := command.Execute(args)
@@ -43,6 +46,7 @@ func (surge *surge) worker(linesValue []string) {
 		surge.transactions++
 		surge.totalBytesSent += result.TotalBytesSent
 		surge.totalBytesReceived += result.TotalBytesReceived
+		surge.responseTime.Update(int64(result.ResponseTime))
 		surge.lock.Unlock()
 		if i > 0 && i == surge.iterations-1 {
 			break
@@ -59,10 +63,11 @@ func (surge *surge) execute(lines []string) Result {
 	}
 	surge.waitGroup.Wait()
 	result := Result{
-		Transactions:       surge.transactions,
-		ElapsedTime:        surge.timer.Stop(),
-		TotalBytesSent:     surge.totalBytesSent,
-		TotalBytesReceived: surge.totalBytesReceived,
+		Transactions:        surge.transactions,
+		ElapsedTime:         surge.timer.Stop(),
+		TotalBytesSent:      surge.totalBytesSent,
+		TotalBytesReceived:  surge.totalBytesReceived,
+		AverageResponseTime: surge.responseTime.Mean(),
 	}
 	if surge.errors == 0 {
 		result.Availability = 1

@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strconv"
+	"time"
 
+	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -15,10 +17,12 @@ type HttpResult struct {
 	TotalBytesSent     int
 	TotalBytesReceived int
 	Error              error
+	ResponseTime       time.Duration
 }
 
 type HttpCommand struct {
 	client HttpClient
+	timer  utils.Timer
 }
 
 func (httpCommand HttpCommand) Execute(args []string) HttpResult {
@@ -37,6 +41,10 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 				return err
 			}
 			result.TotalBytesSent = len(requestBytes)
+			//When using the TRACE utility for HTTP with golang
+			// we can still use the Timer interface
+			//Start the timer
+			httpCommand.timer.Start()
 			response, err := httpCommand.client.Execute(request)
 			if err != nil {
 				result.Error = err
@@ -54,6 +62,8 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
 				}
 			}
+			//Stop the timer
+			result.ResponseTime = httpCommand.timer.Stop()
 			return nil
 		},
 	}
