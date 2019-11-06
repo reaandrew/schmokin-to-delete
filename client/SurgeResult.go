@@ -11,4 +11,6 @@ type Result struct {
 	TotalBytesReceived  int
 	TransactionRate     float64
 	ConcurrencyRate     float64
+	DataSendRate        float64
+	DataReceiveRate     float64
 }

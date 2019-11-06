@@ -2,8 +2,7 @@ package client
 
 import (
 	"errors"
-	"io"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
@@ -36,24 +35,27 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 			if err != nil {
 				return err
 			}
-			requestBytes, err := httputil.DumpRequestOut(request, true)
-			if err != nil {
-				return err
-			}
-			result.TotalBytesSent = len(requestBytes)
 			//When using the TRACE utility for HTTP with golang
 			// we can still use the Timer interface
 			//Start the timer
 			httpCommand.timer.Start()
 			response, err := httpCommand.client.Execute(request)
+			requestBytes, err := httputil.DumpRequestOut(request, true)
+			if err != nil {
+				return err
+			}
+			result.TotalBytesSent = len(requestBytes)
 			if err != nil {
 				result.Error = err
+				fmt.Println("Error")
 			} else {
 				if response.Body != nil {
 					defer response.Body.Close()
-					io.Copy(ioutil.Discard, response.Body)
 				}
 				responseBytes, err := httputil.DumpResponse(response, true)
+				if err != nil {
+					panic(err)
+				}
 				result.TotalBytesReceived = len(responseBytes)
 				if err != nil {
 					result.Error = err
