@@ -67,11 +67,15 @@ to quickly create a Cobra application.`,
 			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
 			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
 			cmd.Println(fmt.Sprintf("Total Bytes Received: %v", humanize.Bytes(uint64(result.TotalBytesReceived))))
-			cmd.Println(fmt.Sprintf("Average Response Time: %vms", result.AverageResponseTime/(float64(time.Millisecond))))
-			cmd.Println(fmt.Sprintf("Average Transaction Rate: %.0f transactions/sec", result.TransactionRate))
-			cmd.Println(fmt.Sprintf("Concurrency: %.0f", result.ConcurrencyRate))
+			cmd.Println(fmt.Sprintf("Average Response Time: %.2fms", result.AverageResponseTime/(float64(time.Millisecond))))
+			cmd.Println(fmt.Sprintf("Average Transaction Rate: %.2f transactions/sec", result.TransactionRate))
+			cmd.Println(fmt.Sprintf("Concurrency: %.2f", result.ConcurrencyRate))
 			cmd.Println(fmt.Sprintf("Data Send Rate: %v/sec", humanize.Bytes(uint64(result.DataSendRate))))
 			cmd.Println(fmt.Sprintf("Data Receive Rate: %v/sec", humanize.Bytes(uint64(result.DataReceiveRate))))
+			cmd.Println(fmt.Sprintf("Successful transactions: %v", result.SuccessfulTransactions))
+			cmd.Println(fmt.Sprintf("Failed transactions: %v", result.FailedTransactions))
+			cmd.Println(fmt.Sprintf("Longest transaction: %v", time.Duration(result.LongestTransaction).String()))
+			cmd.Println(fmt.Sprintf("Shortest transaction: %v", time.Duration(result.ShortestTransaction).String()))
 		}
 		return err
 	},

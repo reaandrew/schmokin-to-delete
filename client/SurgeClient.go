@@ -23,16 +23,17 @@ type surge struct {
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
 	//TODO: Create a stats struct for these
-	transactions       int
-	errors             int
-	totalBytesSent     int
-	totalBytesReceived int
-	responseTime       metrics.Histogram
-	transactionRate    metrics.Meter
-	concurrencyCounter metrics.Counter
-	concurrencyRate    metrics.Histogram
-	dataSendRate       metrics.Meter
-	dataReceiveRate    metrics.Meter
+	transactions           int
+	errors                 int
+	totalBytesSent         int
+	totalBytesReceived     int
+	responseTime           metrics.Histogram
+	transactionRate        metrics.Meter
+	concurrencyCounter     metrics.Counter
+	concurrencyRate        metrics.Histogram
+	dataSendRate           metrics.Meter
+	dataReceiveRate        metrics.Meter
+	successfulTransactions int
 }
 
 func (surge *surge) worker(linesValue []string) {
@@ -50,6 +51,8 @@ func (surge *surge) worker(linesValue []string) {
 		surge.lock.Lock()
 		if result.Error != nil {
 			surge.errors++
+		} else {
+			surge.successfulTransactions++
 		}
 		surge.transactions++
 		surge.totalBytesSent += result.TotalBytesSent
@@ -74,15 +77,19 @@ func (surge *surge) execute(lines []string) Result {
 	}
 	surge.waitGroup.Wait()
 	result := Result{
-		Transactions:        surge.transactions,
-		ElapsedTime:         surge.timer.Stop(),
-		TotalBytesSent:      surge.totalBytesSent,
-		TotalBytesReceived:  surge.totalBytesReceived,
-		AverageResponseTime: surge.responseTime.Mean(),
-		TransactionRate:     surge.transactionRate.RateMean(),
-		ConcurrencyRate:     float64(surge.concurrencyRate.Mean()),
-		DataSendRate:        surge.dataSendRate.RateMean(),
-		DataReceiveRate:     surge.dataReceiveRate.RateMean(),
+		Transactions:           surge.transactions,
+		ElapsedTime:            surge.timer.Stop(),
+		TotalBytesSent:         surge.totalBytesSent,
+		TotalBytesReceived:     surge.totalBytesReceived,
+		AverageResponseTime:    surge.responseTime.Mean(),
+		TransactionRate:        surge.transactionRate.RateMean(),
+		ConcurrencyRate:        float64(surge.concurrencyRate.Mean()),
+		DataSendRate:           surge.dataSendRate.RateMean(),
+		DataReceiveRate:        surge.dataReceiveRate.RateMean(),
+		SuccessfulTransactions: int64(surge.successfulTransactions),
+		FailedTransactions:     int64(surge.errors),
+		LongestTransaction:     surge.responseTime.Max(),
+		ShortestTransaction:    surge.responseTime.Min(),
 	}
 	if surge.errors == 0 {
 		result.Availability = 1
