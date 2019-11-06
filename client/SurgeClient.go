@@ -29,7 +29,8 @@ type surge struct {
 	totalBytesReceived int
 	responseTime       metrics.Histogram
 	transactionRate    metrics.Meter
-	concurrencyRate    metrics.Meter
+	concurrencyCounter metrics.Counter
+	concurrencyRate    metrics.Histogram
 }
 
 func (surge *surge) worker(linesValue []string) {
@@ -40,9 +41,10 @@ func (surge *surge) worker(linesValue []string) {
 			timer:  surge.timer,
 		}
 		var args = strings.Fields(line)
-		surge.concurrencyRate.Mark(1)
+		surge.concurrencyCounter.Inc(1)
 		result := command.Execute(args)
-		surge.concurrencyRate.Mark(-1)
+		surge.concurrencyCounter.Dec(1)
+		surge.concurrencyRate.Update(surge.concurrencyCounter.Count())
 		surge.lock.Lock()
 		if result.Error != nil {
 			surge.errors++
@@ -74,12 +76,17 @@ func (surge *surge) execute(lines []string) Result {
 		TotalBytesReceived:  surge.totalBytesReceived,
 		AverageResponseTime: surge.responseTime.Mean(),
 		TransactionRate:     surge.transactionRate.RateMean(),
-		ConcurrencyRate:     surge.concurrencyRate.RateMean(),
+		ConcurrencyRate:     float64(surge.concurrencyRate.Min()),
 	}
 	if surge.errors == 0 {
 		result.Availability = 1
 	} else {
-		result.Availability = float64(1 - float64(surge.errors)/float64(surge.transactions))
+		availability := float64(surge.errors) / float64(surge.transactions)
+		if availability < 1 {
+			result.Availability = float64(1 - availability)
+		} else {
+			result.Availability = availability
+		}
 	}
 	return result
 }
