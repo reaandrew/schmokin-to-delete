@@ -98,7 +98,11 @@ func (surge *surge) execute(lines []string) Result {
 		if availability < 1 {
 			result.Availability = float64(1 - availability)
 		} else {
-			result.Availability = availability
+			if surge.errors == surge.transactions {
+				result.Availability = 0
+			} else {
+				result.Availability = availability
+			}
 		}
 	}
 	return result

@@ -53,7 +53,7 @@ var (
 
 const (
 	TransactionsKey           = "Transactions"
-	AvailabilityKey           = "Availability (%%)"
+	AvailabilityKey           = "Availability (%)"
 	ElapsedTimeKey            = "Elapsed Time (ms)"
 	TotalBytesSentKey         = "Total Bytes Sent"
 	TotalBytesReceivedKey     = "Total Bytes Received"
@@ -66,6 +66,8 @@ const (
 	FailedTransactionsKey     = "Failed Transactions"
 	LongestTransactionKey     = "Longest Transaction"
 	ShortestTransactionKey    = "Shortest Transaction"
+	WorkerCountKey            = "Worker Count"
+	RandomKey                 = "Random"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -104,6 +106,8 @@ to quickly create a Cobra application.`,
 		failedTransactions := fmt.Sprintf("%v", result.FailedTransactions)
 		longestTransaction := time.Duration(result.LongestTransaction).String()
 		shortestTransaction := time.Duration(result.ShortestTransaction).String()
+		workerCount := fmt.Sprintf("%v", workerCount)
+		randomEnabled := fmt.Sprintf("%v", random)
 
 		cmd.Println(`
  ____  _   _ ____   ____ _____ 
@@ -130,6 +134,8 @@ to quickly create a Cobra application.`,
 					FailedTransactionsKey,
 					LongestTransactionKey,
 					ShortestTransactionKey,
+					WorkerCountKey,
+					RandomKey,
 				},
 				{
 					transactions,
@@ -146,6 +152,8 @@ to quickly create a Cobra application.`,
 					failedTransactions,
 					longestTransaction,
 					shortestTransaction,
+					workerCount,
+					randomEnabled,
 				},
 			}
 
@@ -156,7 +164,6 @@ to quickly create a Cobra application.`,
 				log.Fatal(err)
 
 			}
-			fmt.Println(usr.HomeDir)
 			var resultsFile *os.File
 			defer resultsFile.Close()
 			name := fmt.Sprintf("%v/.surge.results", usr.HomeDir)
@@ -207,6 +214,8 @@ to quickly create a Cobra application.`,
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(FailedTransactionsKey, ".", 45), failedTransactions))
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(LongestTransactionKey, ".", 45), longestTransaction))
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(ShortestTransactionKey, ".", 45), shortestTransaction))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(WorkerCountKey, ".", 45), workerCount))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(RandomKey, ".", 45), randomEnabled))
 			}
 		}
 		return err

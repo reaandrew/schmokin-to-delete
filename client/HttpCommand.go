@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
@@ -40,28 +39,34 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 			//Start the timer
 			httpCommand.timer.Start()
 			response, err := httpCommand.client.Execute(request)
+			if err != nil {
+				result.Error = err
+				return nil
+			}
 			requestBytes, err := httputil.DumpRequestOut(request, true)
 			if err != nil {
-				return err
+				result.Error = err
+				return nil
 			}
 			result.TotalBytesSent = len(requestBytes)
 			if err != nil {
 				result.Error = err
-				fmt.Println("Error")
 			} else {
-				if response.Body != nil {
-					defer response.Body.Close()
-				}
-				responseBytes, err := httputil.DumpResponse(response, true)
-				if err != nil {
-					panic(err)
-				}
-				result.TotalBytesReceived = len(responseBytes)
-				if err != nil {
-					result.Error = err
-				}
-				if response.StatusCode >= 400 {
-					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
+				if response != nil {
+					if response.Body != nil {
+						defer response.Body.Close()
+					}
+					responseBytes, err := httputil.DumpResponse(response, true)
+					if err != nil {
+						panic(err)
+					}
+					result.TotalBytesReceived = len(responseBytes)
+					if err != nil {
+						result.Error = err
+					}
+					if response.StatusCode >= 400 {
+						result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
+					}
 				}
 			}
 			//Stop the timer
