@@ -16,8 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
+	"os/user"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -29,14 +33,39 @@ import (
 	"github.com/spf13/viper"
 )
 
+func RightPad2Len(s string, padStr string, overallLen int) string {
+	//https://github.com/git-time-metric/gtm/blob/master/util/string.go#L53-L88
+	var padCountInt = 1 + ((overallLen - len(padStr)) / len(padStr))
+	var retStr = s + strings.Repeat(padStr, padCountInt)
+	return retStr[:overallLen]
+}
+
 var (
 	cfgFile     string
 	urlFile     string
 	random      bool
 	workerCount int
 	iterations  int
+	output      string
 	Timer       utils.Timer       = &utils.DefaultTimer{}
 	HttpClient  client.HttpClient = client.NewDefaultHttpClient()
+)
+
+const (
+	TransactionsKey           = "Transactions"
+	AvailabilityKey           = "Availability (%%)"
+	ElapsedTimeKey            = "Elapsed Time (ms)"
+	TotalBytesSentKey         = "Total Bytes Sent"
+	TotalBytesReceivedKey     = "Total Bytes Received"
+	AverageResponseTimeKey    = "Average Response Time (ms)"
+	AverageTransactionRateKey = "Average Transaction Rate (requests/sec)"
+	ConcurrencyKey            = "Concurrency"
+	DataSendRateKey           = "Data Send Rate (bytes/sec)"
+	DataReceiveRateKey        = "Data Receive Rate (bytes/sec)"
+	SuccessfulTransactionsKey = "Successfull Transactions"
+	FailedTransactionsKey     = "Failed Transactions"
+	LongestTransactionKey     = "Longest Transaction"
+	ShortestTransactionKey    = "Shortest Transaction"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -61,21 +90,124 @@ to quickly create a Cobra application.`,
 
 		result, err := surgeClient.Run()
 
+		transactions := fmt.Sprintf("%v", result.Transactions)
+		availability := fmt.Sprintf("%v", result.Availability*100)
+		elapsedTime := fmt.Sprintf("%v", result.ElapsedTime.String())
+		totalBytesSent := fmt.Sprintf("%v", humanize.Bytes(uint64(result.TotalBytesSent)))
+		totalBytesReceived := fmt.Sprintf("%v", humanize.Bytes(uint64(result.TotalBytesReceived)))
+		averageResponseTime := fmt.Sprintf("%.2f", result.AverageResponseTime/(float64(time.Millisecond)))
+		transactionRate := fmt.Sprintf("%.2f", result.TransactionRate)
+		concurency := fmt.Sprintf("%.2f", result.ConcurrencyRate)
+		dataSendRate := fmt.Sprintf("%v", humanize.Bytes(uint64(result.DataSendRate)))
+		dataReceiveRate := fmt.Sprintf("%v", humanize.Bytes(uint64(result.DataReceiveRate)))
+		successfulTransactions := fmt.Sprintf("%v", result.SuccessfulTransactions)
+		failedTransactions := fmt.Sprintf("%v", result.FailedTransactions)
+		longestTransaction := time.Duration(result.LongestTransaction).String()
+		shortestTransaction := time.Duration(result.ShortestTransaction).String()
+
+		cmd.Println(`
+ ____  _   _ ____   ____ _____ 
+/ ___|| | | |  _ \ / ___| ____|
+\___ \| | | | |_) | |  _|  _|  
+ ___) | |_| |  _ <| |_| | |___ 
+|____/ \___/|_| \_\\____|_____|
+		`)
+
 		if err == nil {
-			cmd.Println(fmt.Sprintf("Transactions: %v", result.Transactions))
-			cmd.Println(fmt.Sprintf("Availability: %v%%", result.Availability*100))
-			cmd.Println(fmt.Sprintf("Elapsed Time: %v", result.ElapsedTime.String()))
-			cmd.Println(fmt.Sprintf("Total Bytes Sent: %v", humanize.Bytes(uint64(result.TotalBytesSent))))
-			cmd.Println(fmt.Sprintf("Total Bytes Received: %v", humanize.Bytes(uint64(result.TotalBytesReceived))))
-			cmd.Println(fmt.Sprintf("Average Response Time: %.2fms", result.AverageResponseTime/(float64(time.Millisecond))))
-			cmd.Println(fmt.Sprintf("Average Transaction Rate: %.2f transactions/sec", result.TransactionRate))
-			cmd.Println(fmt.Sprintf("Concurrency: %.2f", result.ConcurrencyRate))
-			cmd.Println(fmt.Sprintf("Data Send Rate: %v/sec", humanize.Bytes(uint64(result.DataSendRate))))
-			cmd.Println(fmt.Sprintf("Data Receive Rate: %v/sec", humanize.Bytes(uint64(result.DataReceiveRate))))
-			cmd.Println(fmt.Sprintf("Successful transactions: %v", result.SuccessfulTransactions))
-			cmd.Println(fmt.Sprintf("Failed transactions: %v", result.FailedTransactions))
-			cmd.Println(fmt.Sprintf("Longest transaction: %v", time.Duration(result.LongestTransaction).String()))
-			cmd.Println(fmt.Sprintf("Shortest transaction: %v", time.Duration(result.ShortestTransaction).String()))
+			records := [][]string{
+				{
+					TransactionsKey,
+					AvailabilityKey,
+					ElapsedTimeKey,
+					TotalBytesSentKey,
+					TotalBytesReceivedKey,
+					AverageResponseTimeKey,
+					AverageTransactionRateKey,
+					ConcurrencyKey,
+					DataSendRateKey,
+					DataReceiveRateKey,
+					SuccessfulTransactionsKey,
+					FailedTransactionsKey,
+					LongestTransactionKey,
+					ShortestTransactionKey,
+				},
+				{
+					transactions,
+					availability,
+					elapsedTime,
+					totalBytesSent,
+					totalBytesReceived,
+					averageResponseTime,
+					transactionRate,
+					concurency,
+					dataSendRate,
+					dataReceiveRate,
+					successfulTransactions,
+					failedTransactions,
+					longestTransaction,
+					shortestTransaction,
+				},
+			}
+
+			singleLine := [][]string{records[1]}
+
+			usr, err := user.Current()
+			if err != nil {
+				log.Fatal(err)
+
+			}
+			fmt.Println(usr.HomeDir)
+			var resultsFile *os.File
+			defer resultsFile.Close()
+			name := fmt.Sprintf("%v/.surge.results", usr.HomeDir)
+			if _, err := os.Stat(name); os.IsNotExist(err) {
+				// path/to/whatever does not exist
+				resultsFile, err = os.Create(name)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				records = records[1:]
+				resultsFile, err = os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			w := csv.NewWriter(resultsFile)
+
+			for _, record := range records {
+				if err := w.Write(record); err != nil {
+					log.Fatalln("error writing record to csv:", err)
+				}
+			}
+			w.Flush()
+			switch output {
+			case "csv":
+				w := csv.NewWriter(os.Stdout)
+
+				for _, record := range singleLine {
+					if err := w.Write(record); err != nil {
+						log.Fatalln("error writing record to csv:", err)
+					}
+				}
+				w.Flush()
+			default:
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(TransactionsKey, ".", 45), transactions))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(AvailabilityKey, ".", 45), availability))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(ElapsedTimeKey, ".", 45), elapsedTime))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(TotalBytesSentKey, ".", 45), totalBytesSent))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(TotalBytesReceivedKey, ".", 45), totalBytesReceived))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(AverageResponseTimeKey, ".", 45), averageResponseTime))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(AverageTransactionRateKey, ".", 45), transactionRate))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(ConcurrencyKey, ".", 45), concurency))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(DataSendRateKey, ".", 45), dataSendRate))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(DataReceiveRateKey, ".", 45), dataReceiveRate))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(SuccessfulTransactionsKey, ".", 45), successfulTransactions))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(FailedTransactionsKey, ".", 45), failedTransactions))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(LongestTransactionKey, ".", 45), longestTransaction))
+				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(ShortestTransactionKey, ".", 45), shortestTransaction))
+			}
 		}
 		return err
 	},
@@ -98,6 +230,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
+	RootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "The output format to use for the results")
 	RootCmd.MarkPersistentFlagRequired("urls")
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
 	RootCmd.PersistentFlags().IntVarP(&workerCount, "worker-count", "c", 1, "The number of concurrent virtual users")
