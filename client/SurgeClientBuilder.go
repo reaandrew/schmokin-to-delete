@@ -12,7 +12,6 @@ type SurgeClientBuilder struct {
 }
 
 func NewSurgeClientBuilder() *SurgeClientBuilder {
-
 	s := metrics.NewExpDecaySample(1028, 0.015) // or metrics.NewUniformSample(1028)
 	h := metrics.NewHistogram(s)
 	m := metrics.NewMeter()
@@ -26,6 +25,7 @@ func NewSurgeClientBuilder() *SurgeClientBuilder {
 		client: &surge{
 			workerCount:        1,
 			iterations:         1,
+			processes:          1,
 			httpClient:         NewDefaultHttpClient(),
 			timer:              &utils.DefaultTimer{},
 			lock:               sync.Mutex{},
@@ -36,8 +36,30 @@ func NewSurgeClientBuilder() *SurgeClientBuilder {
 			concurrencyRate:    c,
 			dataSendRate:       sendRate,
 			dataReceiveRate:    receiveRate,
+			server:             false,
+			serverPort:         54321,
+			serverHost:         "localhost",
 		},
 	}
+}
+func (builder *SurgeClientBuilder) SetProcesses(value int) *SurgeClientBuilder {
+	builder.client.processes = value
+	return builder
+}
+
+func (builder *SurgeClientBuilder) SetServerHost(value string) *SurgeClientBuilder {
+	builder.client.serverHost = value
+	return builder
+}
+
+func (builder *SurgeClientBuilder) SetServerPort(value int) *SurgeClientBuilder {
+	builder.client.serverPort = value
+	return builder
+}
+
+func (builder *SurgeClientBuilder) SetServer(value bool) *SurgeClientBuilder {
+	builder.client.server = value
+	return builder
 }
 
 func (builder *SurgeClientBuilder) SetWorkers(count int) *SurgeClientBuilder {

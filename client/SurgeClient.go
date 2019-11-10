@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/rcrowley/go-metrics"
+	"github.com/reaandrew/surge/core"
+	"github.com/reaandrew/surge/server"
 	"github.com/reaandrew/surge/utils"
 )
 
@@ -18,10 +20,14 @@ type surge struct {
 	random      bool
 	workerCount int
 	iterations  int
-	httpClient  HttpClient
+	processes   int
+	httpClient  core.HttpClient
 	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
+	server      bool
+	serverPort  int
+	serverHost  string
 	//TODO: Create a stats struct for these
 	transactions           int
 	errors                 int
@@ -108,6 +114,10 @@ func (surge *surge) execute(lines []string) Result {
 	return result
 }
 
+func (surge *surge) RunRemote(lines []string) (result Result, err error) {
+	return surge.execute(lines), nil
+}
+
 func (surge *surge) Run() (result Result, err error) {
 	var file *os.File
 	if surge.urlFilePath != "" {
@@ -131,7 +141,13 @@ func (surge *surge) Run() (result Result, err error) {
 			rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
 		}
 
-		result = surge.execute(lines)
+		if surge.server {
+			//Start the server
+			server.StartServer()
+		} else {
+			result = surge.execute(lines)
+		}
+
 	}
 	return
 }

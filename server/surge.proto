@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package server;
+
+service SurgeService {
+    rpc Run(SurgeRequest) returns (SurgeResponse);
+}
+
+message SurgeRequest {
+    repeated string lines = 1;
+    bool random = 2;
+    int32 workerCount = 3;
+    int32 iterations = 4;
+}
+
+message SurgeResponse {
+	int32 Transactions = 1;
+	double Availability = 2;
+	int64 ElapsedTime   = 3;
+	double AverageResponseTime  = 4;
+	int32 TotalBytesSent  = 5;
+	int32 TotalBytesReceived  = 6;
+	double TransactionRate  = 7;
+	double ConcurrencyRate  = 8;
+	double DataSendRate  = 9;
+	double DataReceiveRate  = 10;
+	int64 SuccessfulTransactions  = 11;
+	int64 FailedTransactions  = 12;
+	int64 LongestTransaction  = 13;
+	int64 ShortestTransaction  = 14;
+}

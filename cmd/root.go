@@ -41,14 +41,19 @@ func RightPad2Len(s string, padStr string, overallLen int) string {
 }
 
 var (
-	cfgFile     string
-	urlFile     string
-	random      bool
-	workerCount int
-	iterations  int
-	output      string
-	Timer       utils.Timer       = &utils.DefaultTimer{}
-	HttpClient  client.HttpClient = client.NewDefaultHttpClient()
+	cfgFile         string
+	urlFile         string
+	random          bool
+	workerCount     int
+	iterations      int
+	processes       int
+	output          string
+	server          bool
+	serverHost      string
+	serverPort      int
+	workerEndpoints []string
+	Timer           utils.Timer       = &utils.DefaultTimer{}
+	HttpClient      client.HttpClient = client.NewDefaultHttpClient()
 )
 
 const (
@@ -88,6 +93,10 @@ to quickly create a Cobra application.`,
 			SetIterations(iterations).
 			SetHTTPClient(HttpClient).
 			SetTimer(Timer).
+			SetServer(server).
+			SetServerHost(serverHost).
+			SetServerPort(serverPort).
+			SetProcesses(processes).
 			Build()
 
 		result, err := surgeClient.Run()
@@ -157,7 +166,7 @@ to quickly create a Cobra application.`,
 				},
 			}
 
-			singleLine := [][]string{records[1]}
+			fileLines := records[:]
 
 			usr, err := user.Current()
 			if err != nil {
@@ -174,7 +183,7 @@ to quickly create a Cobra application.`,
 					panic(err)
 				}
 			} else {
-				records = records[1:]
+				fileLines = [][]string{records[1]}
 				resultsFile, err = os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 				if err != nil {
 					panic(err)
@@ -183,7 +192,7 @@ to quickly create a Cobra application.`,
 
 			w := csv.NewWriter(resultsFile)
 
-			for _, record := range records {
+			for _, record := range fileLines {
 				if err := w.Write(record); err != nil {
 					log.Fatalln("error writing record to csv:", err)
 				}
@@ -193,7 +202,7 @@ to quickly create a Cobra application.`,
 			case "csv":
 				w := csv.NewWriter(os.Stdout)
 
-				for _, record := range singleLine {
+				for _, record := range records {
 					if err := w.Write(record); err != nil {
 						log.Fatalln("error writing record to csv:", err)
 					}
@@ -244,6 +253,12 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
 	RootCmd.PersistentFlags().IntVarP(&workerCount, "worker-count", "c", 1, "The number of concurrent virtual users")
 	RootCmd.PersistentFlags().IntVarP(&iterations, "number-iterations", "n", 1, "The number of iterations per virtual user")
+	RootCmd.PersistentFlags().IntVarP(&processes, "processes", "p", 1, "The number of processes to run virtual users")
+
+	RootCmd.PersistentFlags().BoolVar(&server, "server", false, "Set in server mode")
+	RootCmd.PersistentFlags().IntVar(&serverPort, "server-port", 51234, "The port thew server should bind to")
+	RootCmd.PersistentFlags().StringVar(&serverHost, "server-host", "localhost", "The hostname the server should bind to")
+	RootCmd.PersistentFlags().StringArrayVar(&workerEndpoints, "worker-endpoints", []string{}, "The number of processes to run virtual users")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
