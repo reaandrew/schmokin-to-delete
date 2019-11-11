@@ -22,11 +22,11 @@ func RunClient() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.Run(ctx, &SurgeRequest{Email: "name"})
+	_, err = c.Run(ctx, &SurgeRequest{})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
 
-	log.Printf("Greeting: %s", r.Url)
+	log.Printf("Greeting")
 
 }

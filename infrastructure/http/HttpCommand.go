@@ -1,4 +1,4 @@
-package client
+package http
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/reaandrew/surge/core"
 	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
 )
@@ -20,8 +19,8 @@ type HttpResult struct {
 }
 
 type HttpCommand struct {
-	client core.HttpClient
-	timer  utils.Timer
+	Client HttpClient
+	Timer  utils.Timer
 }
 
 func (httpCommand HttpCommand) Execute(args []string) HttpResult {
@@ -38,8 +37,8 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 			//When using the TRACE utility for HTTP with golang
 			// we can still use the Timer interface
 			//Start the timer
-			httpCommand.timer.Start()
-			response, err := httpCommand.client.Execute(request)
+			httpCommand.Timer.Start()
+			response, err := httpCommand.Client.Execute(request)
 			if err != nil {
 				result.Error = err
 				return nil
@@ -71,7 +70,7 @@ func (httpCommand HttpCommand) Execute(args []string) HttpResult {
 				}
 			}
 			//Stop the timer
-			result.ResponseTime = httpCommand.timer.Stop()
+			result.ResponseTime = httpCommand.Timer.Stop()
 			return nil
 		},
 	}

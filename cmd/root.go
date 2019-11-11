@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/reaandrew/surge/client"
+	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
 	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
 
@@ -52,8 +52,8 @@ var (
 	serverHost      string
 	serverPort      int
 	workerEndpoints []string
-	Timer           utils.Timer       = &utils.DefaultTimer{}
-	HttpClient      client.HttpClient = client.NewDefaultHttpClient()
+	Timer           utils.Timer          = &utils.DefaultTimer{}
+	HttpClient      surgeHTTP.HttpClient = surgeHTTP.NewDefaultHttpClient()
 )
 
 const (
@@ -86,7 +86,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		surgeClient := client.NewSurgeClientBuilder().
+		surgeClient := cli.NewSurgeCLIBuilder().
 			SetURLFilePath(urlFile).
 			SetRandom(random).
 			SetWorkers(workerCount).

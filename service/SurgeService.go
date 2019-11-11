@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/rcrowley/go-metrics"
-	"github.com/reaandrew/surge/core"
 	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
 	"github.com/reaandrew/surge/utils"
 )
@@ -16,7 +15,7 @@ type SurgeService struct {
 	random      bool
 	workerCount int
 	iterations  int
-	httpClient  core.HttpClient
+	httpClient  surgeHTTP.HttpClient
 	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
@@ -38,8 +37,8 @@ func (surge *SurgeService) worker(linesValue []string) {
 	for i := 0; i < len(linesValue) || (surge.iterations > 0 && i < surge.iterations); i++ {
 		line := linesValue[i%len(linesValue)]
 		var command = surgeHTTP.HttpCommand{
-			client: surge.httpClient,
-			timer:  surge.timer,
+			Client: surge.httpClient,
+			Timer:  surge.timer,
 		}
 		var args = strings.Fields(line)
 		surge.concurrencyCounter.Inc(1)
@@ -82,7 +81,7 @@ func (surge *SurgeService) execute(lines []string) SurgeResult {
 	surge.waitGroup.Wait()
 	result := SurgeResult{
 		Transactions:           surge.transactions,
-		ElapsedTime:            int64(surge.timer.Stop()),
+		ElapsedTime:            surge.timer.Stop(),
 		TotalBytesSent:         surge.totalBytesSent,
 		TotalBytesReceived:     surge.totalBytesReceived,
 		AverageResponseTime:    surge.responseTime.Mean(),

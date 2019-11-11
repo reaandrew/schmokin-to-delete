@@ -1,16 +1,17 @@
-package client_test
+package http_test
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/reaandrew/surge/client"
+	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_WhenNoServerExists(t *testing.T) {
 	request, _ := http.NewRequest("GET", "http://localhost:45000", nil)
-	httpClient := client.NewDefaultHttpClient()
+	httpClient := surgeHTTP.NewDefaultHttpClient()
 	response, err := httpClient.Execute(request)
 	assert.Nil(t, response)
 	assert.NotNil(t, err)
