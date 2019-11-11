@@ -10,6 +10,10 @@ import (
 
 const address = "localhost:50051"
 
+func CreateClient(endpoint string) *SurgeServiceClient {
+	return nil
+}
+
 func RunClient() {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {

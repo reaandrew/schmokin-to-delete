@@ -5,7 +5,16 @@ type SurgeCLIBuilder struct {
 }
 
 func NewSurgeCLIBuilder() *SurgeCLIBuilder {
-	return &SurgeCLIBuilder{}
+	return &SurgeCLIBuilder{
+		cli: &SurgeCLI{
+			workerCount: 1,
+			iterations:  1,
+			processes:   1,
+			serverHost:  "localhost",
+			serverPort:  54321,
+			server:      false,
+		},
+	}
 }
 
 func (builder *SurgeCLIBuilder) SetWorkers(count int) *SurgeCLIBuilder {
