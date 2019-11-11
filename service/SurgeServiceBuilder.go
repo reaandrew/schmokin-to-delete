@@ -39,25 +39,6 @@ func NewSurgeServiceBuilder() *SurgeServiceBuilder {
 		},
 	}
 }
-func (builder *SurgeServiceBuilder) SetProcesses(value int) *SurgeServiceBuilder {
-	builder.service.processes = value
-	return builder
-}
-
-func (builder *SurgeServiceBuilder) SetServerHost(value string) *SurgeServiceBuilder {
-	builder.service.serverHost = value
-	return builder
-}
-
-func (builder *SurgeServiceBuilder) SetServerPort(value int) *SurgeServiceBuilder {
-	builder.service.serverPort = value
-	return builder
-}
-
-func (builder *SurgeServiceBuilder) SetServer(value bool) *SurgeServiceBuilder {
-	builder.service.server = value
-	return builder
-}
 
 func (builder *SurgeServiceBuilder) SetWorkers(count int) *SurgeServiceBuilder {
 	builder.service.workerCount = count

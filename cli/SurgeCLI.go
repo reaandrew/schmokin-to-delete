@@ -2,11 +2,13 @@ package cli
 
 import (
 	"bufio"
+	"fmt"
 	"math/rand"
 	"os"
 	"time"
 
 	"github.com/reaandrew/surge/server"
+	"github.com/reaandrew/surge/service"
 )
 
 type SurgeCLI struct {
@@ -17,9 +19,12 @@ type SurgeCLI struct {
 	serverHost  string
 	workers     []server.SurgeServiceClient
 	processes   int
+	random      bool
+	workerCount int
+	iterations  int
 }
 
-func (SurgeCLI *SurgeCLI) Run() (result Result, err error) {
+func (SurgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 	var file *os.File
 	if SurgeCLI.urlFilePath != "" {
 		file, err = os.Open(SurgeCLI.urlFilePath)
@@ -46,7 +51,7 @@ func (SurgeCLI *SurgeCLI) Run() (result Result, err error) {
 			//Start the server
 			server.StartServer()
 		} else {
-			for 
+			fmt.Println("Doing something else")
 		}
 
 	}

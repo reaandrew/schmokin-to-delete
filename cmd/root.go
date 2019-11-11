@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/reaandrew/surge/cli"
 	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
 	"github.com/reaandrew/surge/utils"
 	"github.com/spf13/cobra"
@@ -91,8 +92,6 @@ to quickly create a Cobra application.`,
 			SetRandom(random).
 			SetWorkers(workerCount).
 			SetIterations(iterations).
-			SetHTTPClient(HttpClient).
-			SetTimer(Timer).
 			SetServer(server).
 			SetServerHost(serverHost).
 			SetServerPort(serverPort).
