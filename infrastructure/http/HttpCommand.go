@@ -1,4 +1,4 @@
-package server
+package client
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ import (
 )
 
 type HttpResult struct {
-	TotalBytesSent     int32
-	TotalBytesReceived int32
+	TotalBytesSent     int
+	TotalBytesReceived int
 	Error              error
 	ResponseTime       time.Duration
 }

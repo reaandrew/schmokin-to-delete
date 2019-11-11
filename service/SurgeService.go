@@ -1,33 +1,25 @@
-package client
+package service
 
 import (
-	"bufio"
 	"math/rand"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/reaandrew/surge/core"
-	"github.com/reaandrew/surge/server"
+	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
 	"github.com/reaandrew/surge/utils"
 )
 
-type surge struct {
-	//TODO: Create a configuration struct for these
-	urlFilePath string
+type SurgeService struct {
 	random      bool
 	workerCount int
 	iterations  int
-	processes   int
 	httpClient  core.HttpClient
 	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
-	server      bool
-	serverPort  int
-	serverHost  string
 	//TODO: Create a stats struct for these
 	transactions           int
 	errors                 int
@@ -42,10 +34,10 @@ type surge struct {
 	successfulTransactions int
 }
 
-func (surge *surge) worker(linesValue []string) {
+func (surge *SurgeService) worker(linesValue []string) {
 	for i := 0; i < len(linesValue) || (surge.iterations > 0 && i < surge.iterations); i++ {
 		line := linesValue[i%len(linesValue)]
-		var command = HttpCommand{
+		var command = surgeHTTP.HttpCommand{
 			client: surge.httpClient,
 			timer:  surge.timer,
 		}
@@ -75,16 +67,22 @@ func (surge *surge) worker(linesValue []string) {
 	surge.waitGroup.Done()
 }
 
-func (surge *surge) execute(lines []string) Result {
+func (surge *SurgeService) execute(lines []string) SurgeResult {
+	if surge.random {
+		//https://yourbasic.org/golang/shuffle-slice-array/
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
+	}
+
 	for i := 0; i < surge.workerCount; i++ {
 		surge.timer.Start()
 		surge.waitGroup.Add(1)
 		go surge.worker(lines)
 	}
 	surge.waitGroup.Wait()
-	result := Result{
+	result := SurgeResult{
 		Transactions:           surge.transactions,
-		ElapsedTime:            surge.timer.Stop(),
+		ElapsedTime:            int64(surge.timer.Stop()),
 		TotalBytesSent:         surge.totalBytesSent,
 		TotalBytesReceived:     surge.totalBytesReceived,
 		AverageResponseTime:    surge.responseTime.Mean(),
@@ -112,42 +110,4 @@ func (surge *surge) execute(lines []string) Result {
 		}
 	}
 	return result
-}
-
-func (surge *surge) RunRemote(lines []string) (result Result, err error) {
-	return surge.execute(lines), nil
-}
-
-func (surge *surge) Run() (result Result, err error) {
-	var file *os.File
-	if surge.urlFilePath != "" {
-		file, err = os.Open(surge.urlFilePath)
-		if err != nil {
-			return
-		}
-		lines := []string{}
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			line := scanner.Text()
-			lines = append(lines, line)
-		}
-		if err = scanner.Err(); err != nil {
-			return
-		}
-
-		if surge.random {
-			//https://yourbasic.org/golang/shuffle-slice-array/
-			rand.Seed(time.Now().UnixNano())
-			rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
-		}
-
-		if surge.server {
-			//Start the server
-			server.StartServer()
-		} else {
-			result = surge.execute(lines)
-		}
-
-	}
-	return
 }

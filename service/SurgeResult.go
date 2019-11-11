@@ -1,8 +1,8 @@
-package client
+package service
 
 import "time"
 
-type Result struct {
+type SurgeResult struct {
 	Transactions           int
 	Availability           float64
 	ElapsedTime            time.Duration
