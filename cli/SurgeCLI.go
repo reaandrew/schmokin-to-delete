@@ -2,9 +2,11 @@ package cli
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
+	"sync"
 
 	"github.com/reaandrew/surge/server"
 	"github.com/reaandrew/surge/service"
@@ -25,6 +27,7 @@ type SurgeCLI struct {
 
 func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 	if surgeCLI.server {
+		fmt.Println("Starting Server!")
 		//Start the server
 		server.StartServer()
 	} else {
@@ -45,12 +48,21 @@ func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 				return
 			}
 		}
+		var wg = sync.WaitGroup{}
 		for i := 0; i < surgeCLI.processes; i++ {
+			wg.Add(1)
 			portNumber := 54322 + i
-			cmd := exec.Command("surge", "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(portNumber))
-			cmd.Start()
+			go func(port int) {
+				cmd := exec.Command("./surge", "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
+				cmd.Stdout = os.Stdout
+				fmt.Println("Starting", strconv.Itoa(port))
+				err := cmd.Run()
+				fmt.Println("Finished", err)
+				wg.Done()
+			}(portNumber)
 			//Try to connect to the server and once connected add the connection to the array and start the next worker
 		}
+		wg.Wait()
 	}
-	return
+	return &service.SurgeResult{}, nil
 }
