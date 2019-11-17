@@ -1,10 +1,22 @@
 syntax = "proto3";
+import "google/protobuf/empty.proto";
 
 package server;
 
 service SurgeService {
     rpc Run(SurgeRequest) returns (SurgeResponse);
+    rpc Ping(google.protobuf.Empty) returns (PingResponse);
+    rpc Kill(google.protobuf.Empty) returns (KillResponse);
 }
+
+message PingResponse {
+  bool healthy = 1;
+}
+
+message KillResponse {
+  bool killed = 1;
+}
+
 
 message SurgeRequest {
     repeated string lines = 1;

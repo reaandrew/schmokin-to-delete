@@ -66,7 +66,7 @@ func (surge *SurgeService) worker(linesValue []string) {
 	surge.waitGroup.Done()
 }
 
-func (surge *SurgeService) execute(lines []string) SurgeResult {
+func (surge *SurgeService) Execute(lines []string) SurgeResult {
 	if surge.random {
 		//https://yourbasic.org/golang/shuffle-slice-array/
 		rand.Seed(time.Now().UnixNano())
