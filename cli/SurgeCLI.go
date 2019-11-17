@@ -17,6 +17,39 @@ import (
 	"google.golang.org/grpc"
 )
 
+func AverageFloat64(values []float64) (result float64) {
+	for _, value := range values {
+		result = result + value
+	}
+	result = result / float64(len(values))
+	return
+}
+
+func Sum(values []int64) (result int64) {
+	for _, value := range values {
+		result += value
+	}
+	return
+}
+
+func Max(values []int64) (result int64) {
+	for _, value := range values {
+		if value > result {
+			result = value
+		}
+	}
+	return
+}
+
+func Min(values []int64) (result int64) {
+	for _, value := range values {
+		if result == 0 || value < result {
+			result = value
+		}
+	}
+	return
+}
+
 type SurgeCLI struct {
 	workers []server.SurgeServiceClient
 	//TODO: Create a configuration struct for these
@@ -32,7 +65,6 @@ type SurgeCLI struct {
 
 func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 	if surgeCLI.server {
-		fmt.Println("Starting Server!")
 		//Start the server
 		server.StartServer(fmt.Sprintf("%v:%v", surgeCLI.serverHost, surgeCLI.serverPort))
 	} else {
@@ -56,6 +88,8 @@ func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 			var wg = sync.WaitGroup{}
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
+
+			responses := make(chan *server.SurgeResponse, surgeCLI.processes)
 			for i := 0; i < surgeCLI.processes; i++ {
 				wg.Add(1)
 				portNumber := 54322 + i
@@ -80,19 +114,16 @@ func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 					client := server.NewSurgeServiceClient(conn)
 					defer client.Kill(ctx, &empty.Empty{})
 
-					fmt.Println("About to start remote worker")
 					response, err := client.Run(ctx, &server.SurgeRequest{
 						Iterations:  int32(surgeCLI.iterations),
 						Lines:       lines,
 						Random:      surgeCLI.random,
 						WorkerCount: int32(surgeCLI.workerCount),
 					})
-					fmt.Println("Finished", err)
+					responses <- response
 
 					if err != nil {
 						panic(err)
-					} else {
-						fmt.Println("Response", response)
 					}
 					wg.Done()
 				}(portNumber)
@@ -100,7 +131,55 @@ func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
 			}
 
 			wg.Wait()
+			result = &service.SurgeResult{}
+			availabilities := []float64{}
+			responseTimes := []float64{}
+			concurrencyRate := []float64{}
+			dateReceiveRates := []float64{}
+			dataSendRates := []float64{}
+			failedTransactions := []int64{}
+			longestTransactions := []int64{}
+			shortestTransactions := []int64{}
+			successfulTransactions := []int64{}
+			totalBytesReceived := []int64{}
+			totalBytesSent := []int64{}
+			transactions := []int64{}
+			transactionRates := []float64{}
+
+			for response := range responses {
+				availabilities = append(availabilities, response.Availability)
+				responseTimes = append(responseTimes, response.AverageResponseTime)
+				concurrencyRate = append(concurrencyRate, response.ConcurrencyRate)
+				dateReceiveRates = append(dateReceiveRates, response.DataReceiveRate)
+				dataSendRates = append(dataSendRates, response.DataSendRate)
+				failedTransactions = append(failedTransactions, response.FailedTransactions)
+				longestTransactions = append(longestTransactions, response.LongestTransaction)
+				shortestTransactions = append(shortestTransactions, response.ShortestTransaction)
+				successfulTransactions = append(successfulTransactions, response.SuccessfulTransactions)
+				totalBytesReceived = append(totalBytesReceived, int64(response.TotalBytesReceived))
+				totalBytesSent = append(totalBytesSent, int64(response.TotalBytesSent))
+				transactions = append(transactions, int64(response.Transactions))
+				transactionRates = append(transactionRates, response.TransactionRate)
+
+				if len(availabilities) == surgeCLI.processes {
+					close(responses)
+				}
+			}
+
+			result.Availability = AverageFloat64(availabilities)
+			result.AverageResponseTime = AverageFloat64(responseTimes)
+			result.ConcurrencyRate = AverageFloat64(concurrencyRate)
+			result.DataReceiveRate = AverageFloat64(dateReceiveRates)
+			result.DataSendRate = AverageFloat64(dataSendRates)
+			result.FailedTransactions = Sum(failedTransactions)
+			result.LongestTransaction = Max(longestTransactions)
+			result.ShortestTransaction = Min(shortestTransactions)
+			result.SuccessfulTransactions = Sum(successfulTransactions)
+			result.TotalBytesReceived = int(Sum(totalBytesReceived))
+			result.TotalBytesSent = int(Sum(totalBytesSent))
+			result.Transactions = int(Sum(transactions))
+			result.TransactionRate = AverageFloat64(transactionRates)
 		}
 	}
-	return &service.SurgeResult{}, nil
+	return
 }

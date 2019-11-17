@@ -2,7 +2,6 @@ package server
 
 import (
 	context "context"
-	fmt "fmt"
 	"log"
 	"net"
 
@@ -19,15 +18,11 @@ type surgeRemoteService struct {
 }
 
 func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeResponse, error) {
-	fmt.Println("Server starting Surge run...")
-
 	service := service.NewSurgeServiceBuilder().
 		SetHTTPClient(surgeHTTP.NewDefaultHttpClient()).
 		Build()
 
 	result := service.Execute(in.Lines)
-
-	fmt.Println("Server run has finished", result)
 
 	response := &SurgeResponse{
 		Transactions:           int32(result.Transactions),
