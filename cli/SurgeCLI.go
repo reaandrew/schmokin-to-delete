@@ -14,7 +14,9 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/reaandrew/surge/server"
 	"github.com/reaandrew/surge/service"
+	"github.com/reaandrew/surge/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 func AverageFloat64(values []float64) (result float64) {
@@ -92,9 +94,25 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 	// e.g. WaitFor(endpoint, 10 * time.Second)
 	// and maybe tie this into the PingResponse to assert
 	// on Healthy
-	time.Sleep(1 * time.Second)
 
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", port), grpc.WithInsecure())
+	var conn *grpc.ClientConn
+	var err error
+
+	utils.WaitUtil{
+		Timeout: 1 * time.Second,
+		Backoff: 10 * time.Millisecond,
+	}.Wait(func() bool {
+		conn, err = grpc.Dial(fmt.Sprintf("localhost:%d", port), grpc.WithInsecure())
+		return err == nil
+	})
+
+	utils.WaitUtil{
+		Timeout: 10 * time.Second,
+		Backoff: 250 * time.Millisecond,
+	}.Wait(func() bool {
+		fmt.Print(conn.GetState())
+		return conn.GetState() == connectivity.Ready
+	})
 
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -148,8 +166,8 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 
 	for _, connection := range surgeCLI.workers {
 		wg.Add(1)
-		go func(client server.SurgeServiceClient) {
-			response, err := client.Run(ctx, &server.SurgeRequest{
+		go func(connection SurgeServiceClientConnection) {
+			response, err := connection.Client.Run(ctx, &server.SurgeRequest{
 				Iterations:  int32(surgeCLI.iterations),
 				Lines:       lines,
 				Random:      surgeCLI.random,
@@ -158,14 +176,16 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 			responses <- response
 
 			if err != nil {
+				fmt.Println(connection.Connection.GetState())
 				panic(err)
 			}
 			wg.Done()
-		}(connection.Client)
+		}(connection)
 	}
 
 	wg.Wait()
 
+	close(responses)
 	result = surgeCLI.MergeResponses(responses)
 	return
 }
@@ -208,10 +228,6 @@ func (surgeCLI SurgeCLI) MergeResponses(responses chan *server.SurgeResponse) (r
 		totalBytesSent = append(totalBytesSent, int64(response.TotalBytesSent))
 		transactions = append(transactions, int64(response.Transactions))
 		transactionRates = append(transactionRates, response.TransactionRate)
-
-		if len(availabilities) == surgeCLI.processes {
-			close(responses)
-		}
 	}
 
 	result.Availability = AverageFloat64(availabilities)
