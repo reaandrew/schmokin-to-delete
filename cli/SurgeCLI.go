@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -19,21 +18,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
-
-func ReadFileToLines(path string) (lines []string, err error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return
-	}
-	lines = []string{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		lines = append(lines, line)
-	}
-	err = scanner.Err()
-	return
-}
 
 type SurgeServiceClientConnection struct {
 	Client     server.SurgeServiceClient
@@ -105,7 +89,7 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 		panic("No URL file supplied")
 	}
 
-	lines, err = ReadFileToLines(surgeCLI.urlFilePath)
+	lines, err = utils.ReadFileToLines(surgeCLI.urlFilePath)
 	if err != nil {
 		panic(err)
 	}
