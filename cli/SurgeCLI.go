@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -110,7 +111,6 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 		Timeout: 10 * time.Second,
 		Backoff: 250 * time.Millisecond,
 	}.Wait(func() bool {
-		fmt.Print(conn.GetState())
 		return conn.GetState() == connectivity.Ready
 	})
 
@@ -148,8 +148,6 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 
 	responses := make(chan *server.SurgeResponse, surgeCLI.processes)
 
-	//Step 1:  Start all the services and store in the array
-
 	fmt.Println("Starting the worker processes...")
 
 	for i := 0; i < surgeCLI.processes; i++ {
@@ -184,6 +182,16 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 	}
 
 	wg.Wait()
+	fmt.Println("Stopping the worker processes...")
+	for _, connection := range surgeCLI.workers {
+		utils.WaitUtil{
+			Timeout: 10 * time.Second,
+			Backoff: 250 * time.Millisecond,
+		}.Wait(func() bool {
+			_, err := connection.Client.Kill(ctx, &empty.Empty{})
+			return err == nil || strings.Contains(err.Error(), "Unavailable")
+		})
+	}
 
 	close(responses)
 	result = surgeCLI.MergeResponses(responses)
