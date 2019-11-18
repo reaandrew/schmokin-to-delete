@@ -184,14 +184,19 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 	wg.Wait()
 	fmt.Println("Stopping the worker processes...")
 	for _, connection := range surgeCLI.workers {
-		utils.WaitUtil{
-			Timeout: 10 * time.Second,
-			Backoff: 250 * time.Millisecond,
-		}.Wait(func() bool {
-			_, err := connection.Client.Kill(ctx, &empty.Empty{})
-			return err == nil || strings.Contains(err.Error(), "Unavailable")
-		})
+		wg.Add(1)
+		go func(connection SurgeServiceClientConnection) {
+			utils.WaitUtil{
+				Timeout: 10 * time.Second,
+				Backoff: 250 * time.Millisecond,
+			}.Wait(func() bool {
+				_, err := connection.Client.Kill(ctx, &empty.Empty{})
+				return err == nil || strings.Contains(err.Error(), "Unavailable")
+			})
+			wg.Done()
+		}(connection)
 	}
+	wg.Wait()
 
 	close(responses)
 	result = surgeCLI.MergeResponses(responses)
