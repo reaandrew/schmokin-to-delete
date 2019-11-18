@@ -8,7 +8,6 @@ jobs:
     working_directory: /go/src/github.com/reaandrew/surge
     steps:
       - checkout
-      - run: export GO111MODULE=on
       - run: go get github.com/Songmu/goxz/cmd/goxz
       - run: go get -v -t -d ./...
       - run: go test -v ./...
@@ -18,6 +17,9 @@ jobs:
           root: .
           paths:
             - .
+      - environment:
+          GO111MODULE: on
+
   publish:
     docker:
       - image: circleci/golang:1.12
