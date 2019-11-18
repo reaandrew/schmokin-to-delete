@@ -150,15 +150,21 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 
 	fmt.Println("Starting the worker processes...")
 
+	var syncLock = sync.Mutex{}
 	for i := 0; i < surgeCLI.processes; i++ {
+		wg.Add(1)
+		//This needs to use some sort of freeport package to find any port which is going
+		// rather than a known range, which currently is very limiting
 		portNumber := 54322 + i
-		connection := surgeCLI.StartServer(portNumber)
-		defer func() {
-			connection.Client.Kill(ctx, &empty.Empty{})
-			connection.Connection.Close()
-		}()
-		surgeCLI.workers = append(surgeCLI.workers, connection)
+		go func(port int) {
+			connection := surgeCLI.StartServer(portNumber)
+			syncLock.Lock()
+			surgeCLI.workers = append(surgeCLI.workers, connection)
+			syncLock.Unlock()
+			wg.Done()
+		}(portNumber)
 	}
+	wg.Wait()
 
 	fmt.Println("Surging...")
 
