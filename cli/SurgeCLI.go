@@ -20,39 +20,6 @@ import (
 	"google.golang.org/grpc/connectivity"
 )
 
-func AverageFloat64(values []float64) (result float64) {
-	for _, value := range values {
-		result = result + value
-	}
-	result = result / float64(len(values))
-	return
-}
-
-func Sum(values []int64) (result int64) {
-	for _, value := range values {
-		result += value
-	}
-	return
-}
-
-func Max(values []int64) (result int64) {
-	for _, value := range values {
-		if value > result {
-			result = value
-		}
-	}
-	return
-}
-
-func Min(values []int64) (result int64) {
-	for _, value := range values {
-		if result == 0 || value < result {
-			result = value
-		}
-	}
-	return
-}
-
 func ReadFileToLines(path string) (lines []string, err error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -249,18 +216,18 @@ func (surgeCLI SurgeCLI) MergeResponses(responses chan *server.SurgeResponse) (r
 		transactionRates = append(transactionRates, response.TransactionRate)
 	}
 
-	result.Availability = AverageFloat64(availabilities)
-	result.AverageResponseTime = AverageFloat64(responseTimes)
-	result.ConcurrencyRate = AverageFloat64(concurrencyRate)
-	result.DataReceiveRate = AverageFloat64(dateReceiveRates)
-	result.DataSendRate = AverageFloat64(dataSendRates)
-	result.FailedTransactions = Sum(failedTransactions)
-	result.LongestTransaction = Max(longestTransactions)
-	result.ShortestTransaction = Min(shortestTransactions)
-	result.SuccessfulTransactions = Sum(successfulTransactions)
-	result.TotalBytesReceived = int(Sum(totalBytesReceived))
-	result.TotalBytesSent = int(Sum(totalBytesSent))
-	result.Transactions = int(Sum(transactions))
-	result.TransactionRate = AverageFloat64(transactionRates)
+	result.Availability = utils.AverageFloat64(availabilities)
+	result.AverageResponseTime = utils.AverageFloat64(responseTimes)
+	result.ConcurrencyRate = utils.AverageFloat64(concurrencyRate)
+	result.DataReceiveRate = utils.AverageFloat64(dateReceiveRates)
+	result.DataSendRate = utils.AverageFloat64(dataSendRates)
+	result.FailedTransactions = utils.Sum(failedTransactions)
+	result.LongestTransaction = utils.Max(longestTransactions)
+	result.ShortestTransaction = utils.Min(shortestTransactions)
+	result.SuccessfulTransactions = utils.Sum(successfulTransactions)
+	result.TotalBytesReceived = int(utils.Sum(totalBytesReceived))
+	result.TotalBytesSent = int(utils.Sum(totalBytesSent))
+	result.Transactions = int(utils.Sum(transactions))
+	result.TransactionRate = utils.AverageFloat64(transactionRates)
 	return
 }
