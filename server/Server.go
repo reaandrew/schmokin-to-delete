@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
 	"github.com/reaandrew/surge/service"
+	"github.com/reaandrew/surge/utils"
 	grpc "google.golang.org/grpc"
 )
 
@@ -20,6 +21,10 @@ type surgeRemoteService struct {
 func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeResponse, error) {
 	service := service.NewSurgeServiceBuilder().
 		SetHTTPClient(surgeHTTP.NewDefaultHttpClient()).
+		SetIterations(int(in.Iterations)).
+		SetRandom(in.Random).
+		SetTimer(utils.NewDefaultTimer()).
+		SetWorkers(int(in.WorkerCount)).
 		Build()
 
 	result := service.Execute(in.Lines)

@@ -1,3 +1,8 @@
+Notes
+
+- Move to fasthttp
+- Use the reuseport package
+
 Tickets
 
 - Assertions
