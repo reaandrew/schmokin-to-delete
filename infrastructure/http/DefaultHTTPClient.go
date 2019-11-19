@@ -2,16 +2,16 @@ package http
 
 import "net/http"
 
-type DefaultHttpClient struct {
+type DefaultHTTPClient struct {
 	client http.Client
 }
 
-func NewDefaultHttpClient() DefaultHttpClient {
-	return DefaultHttpClient{
+func NewDefaultHTTPClient() DefaultHTTPClient {
+	return DefaultHTTPClient{
 		client: http.Client{},
 	}
 }
 
-func (httpClient DefaultHttpClient) Execute(request *http.Request) (*http.Response, error) {
+func (httpClient DefaultHTTPClient) Execute(request *http.Request) (*http.Response, error) {
 	return httpClient.client.Do(request)
 }

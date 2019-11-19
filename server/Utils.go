@@ -50,5 +50,5 @@ func MergeResponses(responses []*SurgeResponse) (result *service.SurgeResult) {
 	result.TotalBytesSent = int(utils.Sum(totalBytesSent))
 	result.Transactions = int(utils.Sum(transactions))
 	result.TransactionRate = utils.AverageFloat64(transactionRates)
-	return
+	return result
 }

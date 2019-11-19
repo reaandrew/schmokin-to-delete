@@ -54,7 +54,7 @@ var (
 	serverPort      int
 	workerEndpoints []string
 	Timer           utils.Timer          = &utils.DefaultTimer{}
-	HttpClient      surgeHTTP.HttpClient = surgeHTTP.NewDefaultHttpClient()
+	HTTPClient      surgeHTTP.HTTPClient = surgeHTTP.NewDefaultHTTPClient()
 )
 
 const (
@@ -68,7 +68,7 @@ const (
 	ConcurrencyKey            = "Concurrency"
 	DataSendRateKey           = "Data Send Rate (bytes/sec)"
 	DataReceiveRateKey        = "Data Receive Rate (bytes/sec)"
-	SuccessfulTransactionsKey = "Successfull Transactions"
+	SuccessfulTransactionsKey = "Successful Transactions"
 	FailedTransactionsKey     = "Failed Transactions"
 	LongestTransactionKey     = "Longest Transaction"
 	ShortestTransactionKey    = "Shortest Transaction"

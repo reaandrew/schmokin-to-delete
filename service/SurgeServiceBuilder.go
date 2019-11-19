@@ -26,7 +26,7 @@ func NewSurgeServiceBuilder() *SurgeServiceBuilder {
 		service: &SurgeService{
 			workerCount:        1,
 			iterations:         1,
-			httpClient:         surgeHTTP.NewDefaultHttpClient(),
+			httpClient:         surgeHTTP.NewDefaultHTTPClient(),
 			timer:              &utils.DefaultTimer{},
 			lock:               sync.Mutex{},
 			waitGroup:          sync.WaitGroup{},
@@ -55,7 +55,7 @@ func (builder *SurgeServiceBuilder) SetRandom(value bool) *SurgeServiceBuilder {
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) SetHTTPClient(client surgeHTTP.HttpClient) *SurgeServiceBuilder {
+func (builder *SurgeServiceBuilder) SetHTTPClient(client surgeHTTP.HTTPClient) *SurgeServiceBuilder {
 	builder.service.httpClient = client
 	return builder
 }

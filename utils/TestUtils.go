@@ -21,7 +21,10 @@ func CreateTestFile(lines []string) *os.File {
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
+	err = ioutil.WriteFile(file.Name(), []byte(fileContents), os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
 	return file
 }
 

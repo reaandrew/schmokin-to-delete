@@ -15,7 +15,7 @@ type SurgeService struct {
 	random      bool
 	workerCount int
 	iterations  int
-	httpClient  surgeHTTP.HttpClient
+	httpClient  surgeHTTP.HTTPClient
 	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
@@ -36,7 +36,7 @@ type SurgeService struct {
 func (surge *SurgeService) worker(linesValue []string) {
 	for i := 0; i < len(linesValue) || (surge.iterations > 0 && i < surge.iterations); i++ {
 		line := linesValue[i%len(linesValue)]
-		var command = surgeHTTP.HttpCommand{
+		var command = surgeHTTP.HTTPCommand{
 			Client: surge.httpClient,
 			Timer:  surge.timer,
 		}
@@ -86,7 +86,7 @@ func (surge *SurgeService) Execute(lines []string) SurgeResult {
 		TotalBytesReceived:     surge.totalBytesReceived,
 		AverageResponseTime:    surge.responseTime.Mean(),
 		TransactionRate:        surge.transactionRate.RateMean(),
-		ConcurrencyRate:        float64(surge.concurrencyRate.Mean()),
+		ConcurrencyRate:        surge.concurrencyRate.Mean(),
 		DataSendRate:           surge.dataSendRate.RateMean(),
 		DataReceiveRate:        surge.dataReceiveRate.RateMean(),
 		SuccessfulTransactions: int64(surge.successfulTransactions),
@@ -99,7 +99,7 @@ func (surge *SurgeService) Execute(lines []string) SurgeResult {
 	} else {
 		availability := float64(surge.errors) / float64(surge.transactions)
 		if availability < 1 {
-			result.Availability = float64(1 - availability)
+			result.Availability = 1 - availability
 		} else {
 			if surge.errors == surge.transactions {
 				result.Availability = 0

@@ -17,24 +17,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func executeCommand(root *cobra.Command, httpClient surgeHTTP.HttpClient, timer utils.Timer, args ...string) (output string, err error) {
+func executeCommand(root *cobra.Command, httpClient surgeHTTP.HTTPClient, timer utils.Timer, args ...string) (output string, err error) {
 	_, output, err = executeCommandC(root, httpClient, timer, args...)
 	return output, err
 }
 
-func executeCommandC(root *cobra.Command, httpClient surgeHTTP.HttpClient, timer utils.Timer, args ...string) (c *cobra.Command, output string, err error) {
+func executeCommandC(root *cobra.Command,
+	httpClient surgeHTTP.HTTPClient,
+	timer utils.Timer, args ...string) (c *cobra.Command, output string, err error) {
 	buf := new(bytes.Buffer)
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
-	cmd.HttpClient = httpClient
+	cmd.HTTPClient = httpClient
 	cmd.Timer = timer
 	c, err = root.ExecuteC()
 
 	fmt.Println("Buffer", buf.String())
 
 	return c, buf.String(), err
-
 }
 
 func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
