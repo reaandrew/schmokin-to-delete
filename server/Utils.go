@@ -5,7 +5,7 @@ import (
 	"github.com/reaandrew/surge/utils"
 )
 
-func MergeResponses(responses chan *SurgeResponse) (result *service.SurgeResult) {
+func MergeResponses(responses []*SurgeResponse) (result *service.SurgeResult) {
 	result = &service.SurgeResult{}
 	availabilities := []float64{}
 	responseTimes := []float64{}
@@ -21,7 +21,7 @@ func MergeResponses(responses chan *SurgeResponse) (result *service.SurgeResult)
 	transactions := []int64{}
 	transactionRates := []float64{}
 
-	for response := range responses {
+	for _, response := range responses {
 		availabilities = append(availabilities, response.Availability)
 		responseTimes = append(responseTimes, response.AverageResponseTime)
 		concurrencyRate = append(concurrencyRate, response.ConcurrencyRate)

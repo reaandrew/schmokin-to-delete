@@ -101,6 +101,33 @@ func (surgeCLI *SurgeCLI) StartWorkerProcesses() {
 	wg.Wait()
 }
 
+func (surgeCLI *SurgeCLI) ExecuteWorkerProcesses(ctx context.Context, lines []string) (responses []*server.SurgeResponse) {
+	var wg = sync.WaitGroup{}
+	var lock = sync.Mutex{}
+	for _, connection := range surgeCLI.workers {
+		wg.Add(1)
+		go func(connection SurgeServiceClientConnection) {
+			response, err := connection.Client.Run(ctx, &server.SurgeRequest{
+				Iterations:  int32(surgeCLI.iterations),
+				Lines:       lines,
+				Random:      surgeCLI.random,
+				WorkerCount: int32(surgeCLI.workerCount),
+			})
+			lock.Lock()
+			responses = append(responses, response)
+			lock.Unlock()
+			if err != nil {
+				fmt.Println(connection.Connection.GetState())
+				panic(err)
+			}
+			wg.Done()
+		}(connection)
+	}
+
+	wg.Wait()
+	return
+}
+
 func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err error) {
 	var lines []string
 
@@ -116,33 +143,12 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	responses := make(chan *server.SurgeResponse, surgeCLI.processes)
-
 	fmt.Println("Starting the worker processes...")
 	surgeCLI.StartWorkerProcesses()
 
 	fmt.Println("Surging...")
+	responses := surgeCLI.ExecuteWorkerProcesses(ctx, lines)
 
-	for _, connection := range surgeCLI.workers {
-		wg.Add(1)
-		go func(connection SurgeServiceClientConnection) {
-			response, err := connection.Client.Run(ctx, &server.SurgeRequest{
-				Iterations:  int32(surgeCLI.iterations),
-				Lines:       lines,
-				Random:      surgeCLI.random,
-				WorkerCount: int32(surgeCLI.workerCount),
-			})
-			responses <- response
-
-			if err != nil {
-				fmt.Println(connection.Connection.GetState())
-				panic(err)
-			}
-			wg.Done()
-		}(connection)
-	}
-
-	wg.Wait()
 	fmt.Println("Stopping the worker processes...")
 	for _, connection := range surgeCLI.workers {
 		wg.Add(1)
@@ -159,7 +165,6 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 	}
 	wg.Wait()
 
-	close(responses)
 	result = server.MergeResponses(responses)
 	return
 }
