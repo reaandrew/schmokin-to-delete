@@ -38,9 +38,13 @@ type SurgeCLI struct {
 }
 
 func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
+	var err error
 	cmd := exec.Command("./surge", "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
 	cmd.Stdout = os.Stdout
-	cmd.Start()
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
 	//This would be better to have a synchronous wait timer
 	// that would panic after a given threshold.
 	// e.g. WaitFor(endpoint, 10 * time.Second)
@@ -48,7 +52,6 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 	// on Healthy
 
 	var conn *grpc.ClientConn
-	var err error
 
 	utils.WaitUtil{
 		Timeout: 1 * time.Second,

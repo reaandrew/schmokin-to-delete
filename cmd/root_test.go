@@ -50,7 +50,10 @@ func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
 	client := surgeHTTP.NewFakeHTTPClient()
 	urlsVisited := []string{}
 
-	executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
+
+	assert.Nil(t, err)
+	assert.NotEqual(t, "", output)
 
 	for _, request := range client.Requests {
 		urlsVisited = append(urlsVisited, request.RequestURI)
@@ -69,7 +72,9 @@ func TestSupportForVerbPut(t *testing.T) {
 	methods := []string{}
 	client := surgeHTTP.NewFakeHTTPClient()
 
-	executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
+	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
+	assert.Nil(t, err)
+	assert.NotEqual(t, "", output)
 
 	for _, request := range client.Requests {
 		methods = append(methods, request.Method)

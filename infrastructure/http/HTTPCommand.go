@@ -76,7 +76,10 @@ func (httpCommand HTTPCommand) Execute(args []string) HTTPResult {
 	}
 	command.PersistentFlags().StringVarP(&verb, "verb", "X", "GET", "")
 	command.SetArgs(args)
-	command.Execute()
+	err := command.Execute()
+	if err != nil {
+		panic(err)
+	}
 
 	return result
 }
