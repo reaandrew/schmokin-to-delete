@@ -24,14 +24,14 @@ type SurgeClientTransactionTestCase struct {
 
 func Test_SurgeClientReturnNumberOfTransactions(t *testing.T) {
 	cases := []SurgeClientTransactionTestCase{
-		SurgeClientTransactionTestCase{Urls: 1, Workers: 1, Iterations: 1, ExpectedTransactions: 1},
-		SurgeClientTransactionTestCase{Urls: 2, Workers: 1, Iterations: 1, ExpectedTransactions: 2},
-		SurgeClientTransactionTestCase{Urls: 1, Workers: 2, Iterations: 1, ExpectedTransactions: 2},
-		SurgeClientTransactionTestCase{Urls: 2, Workers: 2, Iterations: 1, ExpectedTransactions: 4},
-		SurgeClientTransactionTestCase{Urls: 1, Workers: 2, Iterations: 2, ExpectedTransactions: 4},
-		SurgeClientTransactionTestCase{Urls: 3, Workers: 2, Iterations: 2, ExpectedTransactions: 4},
-		SurgeClientTransactionTestCase{Urls: 2, Workers: 2, Iterations: 3, ExpectedTransactions: 6},
-		SurgeClientTransactionTestCase{Urls: 5, Workers: 100, Iterations: 5, ExpectedTransactions: 500},
+		{Urls: 1, Workers: 1, Iterations: 1, ExpectedTransactions: 1},
+		{Urls: 2, Workers: 1, Iterations: 1, ExpectedTransactions: 2},
+		{Urls: 1, Workers: 2, Iterations: 1, ExpectedTransactions: 2},
+		{Urls: 2, Workers: 2, Iterations: 1, ExpectedTransactions: 4},
+		{Urls: 1, Workers: 2, Iterations: 2, ExpectedTransactions: 4},
+		{Urls: 3, Workers: 2, Iterations: 2, ExpectedTransactions: 4},
+		{Urls: 2, Workers: 2, Iterations: 3, ExpectedTransactions: 6},
+		{Urls: 5, Workers: 100, Iterations: 5, ExpectedTransactions: 500},
 	}
 
 	for _, currentTestCase := range cases {
@@ -62,11 +62,11 @@ type SurgeClientAvailabilityTestCase struct {
 
 func Test_SurgeClientReturnsAvailability(t *testing.T) {
 	cases := []SurgeClientAvailabilityTestCase{
-		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200, 500, 500}, ExpectedAvailability: float64(0.5)},
-		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200}, ExpectedAvailability: float64(1)},
-		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 201, 202}, ExpectedAvailability: float64(1)},
-		SurgeClientAvailabilityTestCase{StatusCodes: []int{200, 200, 404, 500}, ExpectedAvailability: float64(0.5)},
-		SurgeClientAvailabilityTestCase{StatusCodes: []int{500, 500, 500, 500}, ExpectedAvailability: float64(0)},
+		{StatusCodes: []int{200, 200, 500, 500}, ExpectedAvailability: float64(0.5)},
+		{StatusCodes: []int{200, 200}, ExpectedAvailability: float64(1)},
+		{StatusCodes: []int{200, 201, 202}, ExpectedAvailability: float64(1)},
+		{StatusCodes: []int{200, 200, 404, 500}, ExpectedAvailability: float64(0.5)},
+		{StatusCodes: []int{500, 500, 500, 500}, ExpectedAvailability: float64(0)},
 	}
 
 	for _, currentTestCase := range cases {
