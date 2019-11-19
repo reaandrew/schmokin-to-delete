@@ -17,19 +17,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func executeCommand(root *cobra.Command, httpClient surgeHTTP.HTTPClient, timer utils.Timer, args ...string) (output string, err error) {
+func executeCommand(root *cobra.Command, httpClient surgeHTTP.Client, timer utils.Timer, args ...string) (output string, err error) {
 	_, output, err = executeCommandC(root, httpClient, timer, args...)
 	return output, err
 }
 
 func executeCommandC(root *cobra.Command,
-	httpClient surgeHTTP.HTTPClient,
+	httpClient surgeHTTP.Client,
 	timer utils.Timer, args ...string) (c *cobra.Command, output string, err error) {
 	buf := new(bytes.Buffer)
 	root.SetOut(buf)
 	root.SetErr(buf)
 	root.SetArgs(args)
-	cmd.HTTPClient = httpClient
+	cmd.Client = httpClient
 	cmd.Timer = timer
 	c, err = root.ExecuteC()
 
@@ -47,7 +47,7 @@ func TestVisitUrlsSpecifiedInAFile(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	urlsVisited := []string{}
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
@@ -70,7 +70,7 @@ func TestSupportForVerbPut(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	methods := []string{}
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name())
 	assert.Nil(t, err)
@@ -94,7 +94,7 @@ func TestSupportForRandomOrder(t *testing.T) {
 	file := utils.CreateTestFile(urls)
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-r")
 	assert.Nil(t, err, output)
@@ -118,7 +118,7 @@ func TestSupportForConcurrentWorkers(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	var concurrentWorkerCount = 5
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-c", strconv.Itoa(concurrentWorkerCount))
 	assert.Nil(t, err, output)
@@ -133,7 +133,7 @@ func TestSupportForNumberOfIterations(t *testing.T) {
 
 	var concurrentWorkerCount = 1
 	var iterationCount = 5
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
@@ -150,7 +150,7 @@ func TestSupportForNumberOfIterationsWithConcurrentWorkers(t *testing.T) {
 
 	var concurrentWorkerCount = 5
 	var iterationCount = 5
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(),
 		"-n", strconv.Itoa(iterationCount),
@@ -165,7 +165,7 @@ func TestOutputsNumberOfTransactions(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-n", "1", "-c", "1")
 
@@ -179,7 +179,7 @@ func TestOutputsNumberOfAvailability(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 
 	output, err := executeCommand(cmd.RootCmd, client, utils.NewDefaultTimer(), "-u", file.Name(), "-n", "1", "-c", "1")
 
@@ -193,7 +193,7 @@ func TestOutputsElapsedTimeInHumanReadableForm(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	timer := utils.NewFakeTimer(1 * time.Minute)
 
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
@@ -208,7 +208,7 @@ func TestOutputsTotalBytesSent(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	timer := utils.NewFakeTimer(1 * time.Minute)
 
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
@@ -223,7 +223,7 @@ func TestOutputsTotalBytesReceived(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	timer := utils.NewFakeTimer(1 * time.Minute)
 
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
@@ -238,7 +238,7 @@ func TestOutputsAverageResponseTime(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	timer := utils.NewFakeTimer(1 * time.Second)
 
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")
@@ -253,7 +253,7 @@ func TestOutputsAverageTransactionRate(t *testing.T) {
 	})
 	defer os.Remove(file.Name())
 
-	client := surgeHTTP.NewFakeHTTPClient()
+	client := surgeHTTP.NewFakeClient()
 	timer := utils.NewFakeTimer(1 * time.Minute)
 
 	output, err := executeCommand(cmd.RootCmd, client, timer, "-u", file.Name(), "-n", "1", "-c", "1")

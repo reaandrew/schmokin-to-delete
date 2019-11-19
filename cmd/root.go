@@ -165,7 +165,7 @@ to quickly create a Cobra application.`,
 				},
 			}
 
-			fileLines := records[:]
+			fileLines := records
 
 			usr, err := user.Current()
 			if err != nil {

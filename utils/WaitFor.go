@@ -9,15 +9,15 @@ type WaitUtil struct {
 	Backoff time.Duration
 }
 
-func (self WaitUtil) Wait(waiter func() bool) {
+func (waitUtil WaitUtil) Wait(waiter func() bool) {
 	start := time.Now()
 	for {
-		if time.Since(start) > self.Timeout {
+		if time.Since(start) > waitUtil.Timeout {
 			panic("Timed out")
 		}
 		if waiter() {
 			return
 		}
-		time.Sleep(self.Backoff)
+		time.Sleep(waitUtil.Backoff)
 	}
 }

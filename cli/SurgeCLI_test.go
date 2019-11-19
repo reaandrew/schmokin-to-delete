@@ -41,7 +41,7 @@ func Test_SurgeClientReturnNumberOfTransactions(t *testing.T) {
 			testCase.Workers,
 			testCase.Iterations,
 			testCase.ExpectedTransactions), func(t *testing.T) {
-			file := utils.CreateRandomHttpTestFile(testCase.Urls)
+			file := utils.CreateRandomHTTPTestFile(testCase.Urls)
 			surgeClient := cli.NewSurgeCLIBuilder().
 				SetURLFilePath(file.Name()).
 				SetWorkers(testCase.Workers).
@@ -72,8 +72,8 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 	for _, currentTestCase := range cases {
 		testCase := currentTestCase
 		t.Run(fmt.Sprintf("Test_SurgeClientReturnAvailabilityOf%v%%", testCase.ExpectedAvailability*100), func(t *testing.T) {
-			file := utils.CreateRandomHttpTestFile(len(testCase.StatusCodes))
-			httpClient := surgeHTTP.NewFakeHTTPClient()
+			file := utils.CreateRandomHTTPTestFile(len(testCase.StatusCodes))
+			httpClient := surgeHTTP.NewFakeClient()
 			surgeClient := cli.NewSurgeCLIBuilder().
 				SetURLFilePath(file.Name()).
 				Build()
@@ -91,7 +91,7 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 }
 
 func Test_SurgeClientReturnsElapsedTime(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(1)
+	file := utils.CreateRandomHTTPTestFile(1)
 	expectedElapsed := 100 * time.Second
 	timer := &utils.FakeTimer{}
 	timer.SetElapsed(expectedElapsed)
@@ -105,7 +105,7 @@ func Test_SurgeClientReturnsElapsedTime(t *testing.T) {
 }
 
 func Test_SurgeClientReturnsTotalBytesSent(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(1)
+	file := utils.CreateRandomHTTPTestFile(1)
 	surgeClient := cli.NewSurgeCLIBuilder().
 		SetURLFilePath(file.Name()).
 		Build()
@@ -117,7 +117,7 @@ func Test_SurgeClientReturnsTotalBytesSent(t *testing.T) {
 }
 
 func Test_SurgeClientReturnsTotalBytesReceived(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(1)
+	file := utils.CreateRandomHTTPTestFile(1)
 	surgeClient := cli.NewSurgeCLIBuilder().
 		SetURLFilePath(file.Name()).
 		Build()
@@ -129,7 +129,7 @@ func Test_SurgeClientReturnsTotalBytesReceived(t *testing.T) {
 }
 
 func Test_SurgeClientReturnsAverageResponseTime(t *testing.T) {
-	file := utils.CreateRandomHttpTestFile(1)
+	file := utils.CreateRandomHTTPTestFile(1)
 	expectedDuration := 1 * time.Minute
 	surgeClient := cli.NewSurgeCLIBuilder().
 		SetURLFilePath(file.Name()).

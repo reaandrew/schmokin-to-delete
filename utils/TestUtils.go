@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func CreateRandomHttpTestFile(lineCount int) *os.File {
+func CreateRandomHTTPTestFile(lineCount int) *os.File {
 	lines := []string{}
 	for i := 0; i < lineCount; i++ {
 		lines = append(lines, fmt.Sprintf("http://localhost:8080/%v", i+1))
