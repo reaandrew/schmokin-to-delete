@@ -87,6 +87,14 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		cmd.Println(`
+ ____  _   _ ____   ____ _____ 
+/ ___|| | | |  _ \ / ___| ____|
+\___ \| | | | |_) | |  _|  _|  
+ ___) | |_| |  _ <| |_| | |___ 
+|____/ \___/|_| \_\\____|_____|
+		`)
+
 		surgeClient := cli.NewSurgeCLIBuilder().
 			SetURLFilePath(urlFile).
 			SetRandom(random).
@@ -116,14 +124,6 @@ to quickly create a Cobra application.`,
 		shortestTransaction := time.Duration(result.ShortestTransaction).String()
 		workerCount := fmt.Sprintf("%v", workerCount)
 		randomEnabled := fmt.Sprintf("%v", random)
-
-		cmd.Println(`
- ____  _   _ ____   ____ _____ 
-/ ___|| | | |  _ \ / ___| ____|
-\___ \| | | | |_) | |  _|  _|  
- ___) | |_| |  _ <| |_| | |___ 
-|____/ \___/|_| \_\\____|_____|
-		`)
 
 		if err == nil {
 			records := [][]string{
@@ -208,6 +208,7 @@ to quickly create a Cobra application.`,
 				}
 				w.Flush()
 			default:
+				cmd.Println("")
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(TransactionsKey, ".", 45), transactions))
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(AvailabilityKey, ".", 45), availability))
 				cmd.Println(fmt.Sprintf("%v: %v", RightPad2Len(ElapsedTimeKey, ".", 45), elapsedTime))
