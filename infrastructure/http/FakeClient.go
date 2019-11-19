@@ -7,20 +7,20 @@ import (
 
 var m = sync.Mutex{}
 
-type FakeHTTPClient struct {
+type FakeClient struct {
 	Requests    []*http.Request
 	Interceptor InterceptorFunc
 }
 
-func NewFakeHTTPClient() *FakeHTTPClient {
-	return &FakeHTTPClient{
+func NewFakeClient() *FakeClient {
+	return &FakeClient{
 		Interceptor: func(response *http.Response) {},
 	}
 }
 
 type InterceptorFunc func(response *http.Response)
 
-func (fakeClient *FakeHTTPClient) Execute(request *http.Request) (*http.Response, error) {
+func (fakeClient *FakeClient) Execute(request *http.Request) (*http.Response, error) {
 	m.Lock()
 	fakeClient.Requests = append(fakeClient.Requests, request)
 	m.Unlock()

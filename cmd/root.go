@@ -53,8 +53,8 @@ var (
 	serverHost      string
 	serverPort      int
 	workerEndpoints []string
-	Timer           utils.Timer          = &utils.DefaultTimer{}
-	HTTPClient      surgeHTTP.HTTPClient = surgeHTTP.NewDefaultHTTPClient()
+	Timer           utils.Timer      = &utils.DefaultTimer{}
+	Client          surgeHTTP.Client = surgeHTTP.NewDefaultClient()
 )
 
 const (

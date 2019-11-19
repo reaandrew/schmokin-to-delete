@@ -20,7 +20,7 @@ type surgeRemoteService struct {
 
 func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeResponse, error) {
 	service := service.NewSurgeServiceBuilder().
-		SetHTTPClient(surgeHTTP.NewDefaultHTTPClient()).
+		SetClient(surgeHTTP.NewDefaultClient()).
 		SetIterations(int(in.Iterations)).
 		SetRandom(in.Random).
 		SetTimer(utils.NewDefaultTimer()).

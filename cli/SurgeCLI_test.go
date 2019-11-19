@@ -34,7 +34,8 @@ func Test_SurgeClientReturnNumberOfTransactions(t *testing.T) {
 		SurgeClientTransactionTestCase{Urls: 5, Workers: 100, Iterations: 5, ExpectedTransactions: 500},
 	}
 
-	for _, testCase := range cases {
+	for _, currentTestCase := range cases {
+		testCase := currentTestCase
 		t.Run(fmt.Sprintf("Test_SurgeClientReturnNumberOfTransactions_Urls_%v_Workers_%v_Iterations_%v_Returns_%v_Transactions",
 			testCase.Urls,
 			testCase.Workers,
@@ -68,7 +69,8 @@ func Test_SurgeClientReturnsAvailability(t *testing.T) {
 		SurgeClientAvailabilityTestCase{StatusCodes: []int{500, 500, 500, 500}, ExpectedAvailability: float64(0)},
 	}
 
-	for _, testCase := range cases {
+	for _, currentTestCase := range cases {
+		testCase := currentTestCase
 		t.Run(fmt.Sprintf("Test_SurgeClientReturnAvailabilityOf%v%%", testCase.ExpectedAvailability*100), func(t *testing.T) {
 			file := utils.CreateRandomHttpTestFile(len(testCase.StatusCodes))
 			httpClient := surgeHTTP.NewFakeHTTPClient()

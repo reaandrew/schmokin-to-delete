@@ -15,7 +15,7 @@ type SurgeService struct {
 	random      bool
 	workerCount int
 	iterations  int
-	httpClient  surgeHTTP.HTTPClient
+	httpClient  surgeHTTP.Client
 	timer       utils.Timer
 	lock        sync.Mutex
 	waitGroup   sync.WaitGroup
@@ -36,7 +36,7 @@ type SurgeService struct {
 func (surge *SurgeService) worker(linesValue []string) {
 	for i := 0; i < len(linesValue) || (surge.iterations > 0 && i < surge.iterations); i++ {
 		line := linesValue[i%len(linesValue)]
-		var command = surgeHTTP.HTTPCommand{
+		var command = surgeHTTP.Command{
 			Client: surge.httpClient,
 			Timer:  surge.timer,
 		}

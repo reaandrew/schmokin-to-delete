@@ -11,21 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type HTTPResult struct {
+type Result struct {
 	TotalBytesSent     int
 	TotalBytesReceived int
 	Error              error
 	ResponseTime       time.Duration
 }
 
-type HTTPCommand struct {
-	Client HTTPClient
+type Command struct {
+	Client Client
 	Timer  utils.Timer
 }
 
-func (httpCommand HTTPCommand) Execute(args []string) HTTPResult {
+func (httpCommand Command) Execute(args []string) Result {
 	var verb string
-	var result HTTPResult
+	var result Result
 
 	command := &cobra.Command{
 		Args: cobra.ExactArgs(1),
