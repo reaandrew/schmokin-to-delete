@@ -2,9 +2,9 @@ package utils
 
 func AverageFloat64(values []float64) (result float64) {
 	for _, value := range values {
-		result = result + value
+		result += value
 	}
-	result = result / float64(len(values))
+	result /= float64(len(values))
 	return
 }
 
