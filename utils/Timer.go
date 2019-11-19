@@ -2,7 +2,10 @@ package utils
 
 import "time"
 
-type Timer interface {
-	Start()
+type StoppableTimer interface {
 	Stop() time.Duration
+}
+
+type Timer interface {
+	Start() StoppableTimer
 }

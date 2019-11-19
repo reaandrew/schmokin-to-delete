@@ -38,7 +38,7 @@ func (httpCommand Command) Execute(args []string) Result {
 			// we can still use the Timer interface
 
 			// Start the timer
-			httpCommand.Timer.Start()
+			timer := httpCommand.Timer.Start()
 			response, err := httpCommand.Client.Execute(request)
 			if err != nil {
 				result.Error = err
@@ -69,7 +69,7 @@ func (httpCommand Command) Execute(args []string) Result {
 				}
 			}
 			// Stop the timer
-			result.ResponseTime = httpCommand.Timer.Stop()
+			result.ResponseTime = timer.Stop()
 			return nil
 		},
 	}

@@ -67,21 +67,20 @@ func (surge *SurgeService) worker(linesValue []string) {
 }
 
 func (surge *SurgeService) Execute(lines []string) SurgeResult {
+	timer := surge.timer.Start()
 	if surge.random {
 		//https://yourbasic.org/golang/shuffle-slice-array/
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(lines), func(i, j int) { lines[i], lines[j] = lines[j], lines[i] })
 	}
-
 	for i := 0; i < surge.workerCount; i++ {
-		surge.timer.Start()
 		surge.waitGroup.Add(1)
 		go surge.worker(lines)
 	}
 	surge.waitGroup.Wait()
 	result := SurgeResult{
 		Transactions:           surge.transactions,
-		ElapsedTime:            surge.timer.Stop(),
+		ElapsedTime:            timer.Stop(),
 		TotalBytesSent:         surge.totalBytesSent,
 		TotalBytesReceived:     surge.totalBytesReceived,
 		AverageResponseTime:    surge.responseTime.Mean(),
@@ -99,7 +98,7 @@ func (surge *SurgeService) Execute(lines []string) SurgeResult {
 	} else {
 		availability := float64(surge.errors) / float64(surge.transactions)
 		if availability < 1 {
-			result.Availability = 1 - availability
+			result.Availability = float64(1) - availability
 		} else {
 			if surge.errors == surge.transactions {
 				result.Availability = 0

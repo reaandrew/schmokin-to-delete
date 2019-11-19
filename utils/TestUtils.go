@@ -7,11 +7,16 @@ import (
 	"strings"
 )
 
-func CreateRandomHTTPTestFile(lineCount int) *os.File {
+func CreateRandomLines(lineCount int) []string {
 	lines := []string{}
 	for i := 0; i < lineCount; i++ {
 		lines = append(lines, fmt.Sprintf("http://localhost:8080/%v", i+1))
 	}
+	return lines
+}
+
+func CreateRandomHTTPTestFile(lineCount int) *os.File {
+	lines := CreateRandomLines(lineCount)
 	return CreateTestFile(lines)
 }
 
