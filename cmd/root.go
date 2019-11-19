@@ -34,7 +34,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func RightPad2Len(s string, padStr string, overallLen int) string {
+func RightPad2Len(s, padStr string, overallLen int) string {
 	//https://github.com/git-time-metric/gtm/blob/master/util/string.go#L53-L88
 	var padCountInt = 1 + ((overallLen - len(padStr)) / len(padStr))
 	var retStr = s + strings.Repeat(padStr, padCountInt)

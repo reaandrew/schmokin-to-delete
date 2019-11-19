@@ -19,7 +19,7 @@ type surgeRemoteService struct {
 }
 
 func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeResponse, error) {
-	service := service.NewSurgeServiceBuilder().
+	surgeService := service.NewSurgeServiceBuilder().
 		SetClient(surgeHTTP.NewDefaultClient()).
 		SetIterations(int(in.Iterations)).
 		SetRandom(in.Random).
@@ -27,7 +27,7 @@ func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeR
 		SetWorkers(int(in.WorkerCount)).
 		Build()
 
-	result := service.Execute(in.Lines)
+	result := surgeService.Execute(in.Lines)
 
 	response := &SurgeResponse{
 		Transactions:           int32(result.Transactions),

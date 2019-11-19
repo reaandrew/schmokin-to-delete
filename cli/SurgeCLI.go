@@ -45,7 +45,7 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 	if err != nil {
 		panic(err)
 	}
-	//This would be better to have a synchronous wait timer
+	// This would be better to have a synchronous wait timer
 	// that would panic after a given threshold.
 	// e.g. WaitFor(endpoint, 10 * time.Second)
 	// and maybe tie this into the PingResponse to assert
@@ -90,7 +90,7 @@ func (surgeCLI *SurgeCLI) StartWorkerProcesses() {
 	var syncLock = sync.Mutex{}
 	for i := 0; i < surgeCLI.processes; i++ {
 		wg.Add(1)
-		//This needs to use some sort of freeport package to find any port which is going
+		// This needs to use some sort of freeport package to find any port which is going
 		// rather than a known range, which currently is very limiting
 		portNumber := 54322 + i
 		go func(port int) {

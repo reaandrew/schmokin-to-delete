@@ -51,22 +51,20 @@ func (httpCommand Command) Execute(args []string) Result {
 			result.TotalBytesSent = len(requestBytes)
 			if err != nil {
 				result.Error = err
-			} else {
-				if response != nil {
-					if response.Body != nil {
-						defer response.Body.Close()
-					}
-					responseBytes, err := httputil.DumpResponse(response, true)
-					if err != nil {
-						panic(err)
-					}
-					result.TotalBytesReceived = len(responseBytes)
-					if err != nil {
-						result.Error = err
-					}
-					if response.StatusCode >= 400 {
-						result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
-					}
+			} else if response != nil {
+				if response.Body != nil {
+					defer response.Body.Close()
+				}
+				responseBytes, err := httputil.DumpResponse(response, true)
+				if err != nil {
+					panic(err)
+				}
+				result.TotalBytesReceived = len(responseBytes)
+				if err != nil {
+					result.Error = err
+				}
+				if response.StatusCode >= 400 {
+					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
 				}
 			}
 			//Stop the timer
