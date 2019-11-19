@@ -34,9 +34,10 @@ func (httpCommand Command) Execute(args []string) Result {
 			if err != nil {
 				return err
 			}
-			//When using the TRACE utility for HTTP with golang
+			// When using the TRACE utility for HTTP with golang
 			// we can still use the Timer interface
-			//Start the timer
+
+			// Start the timer
 			httpCommand.Timer.Start()
 			response, err := httpCommand.Client.Execute(request)
 			if err != nil {
@@ -67,7 +68,7 @@ func (httpCommand Command) Execute(args []string) Result {
 					result.Error = errors.New("Error " + strconv.Itoa(response.StatusCode))
 				}
 			}
-			//Stop the timer
+			// Stop the timer
 			result.ResponseTime = httpCommand.Timer.Stop()
 			return nil
 		},

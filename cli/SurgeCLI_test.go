@@ -112,7 +112,7 @@ func Test_SurgeClientReturnsTotalBytesSent(t *testing.T) {
 	result, err := surgeClient.Run()
 
 	assert.Nil(t, err)
-	//This is the size of one request dumped
+	// This is the size of one request dumped
 	assert.Equal(t, result.TotalBytesSent, 96)
 }
 
@@ -124,7 +124,7 @@ func Test_SurgeClientReturnsTotalBytesReceived(t *testing.T) {
 	result, err := surgeClient.Run()
 
 	assert.Nil(t, err)
-	//This is the size of one request dumped
+	// This is the size of one request dumped
 	assert.Equal(t, result.TotalBytesReceived, 38)
 }
 
@@ -137,6 +137,6 @@ func Test_SurgeClientReturnsAverageResponseTime(t *testing.T) {
 	result, err := surgeClient.Run()
 
 	assert.Nil(t, err)
-	//This is the size of one request dumped
+	// This is the size of one request dumped
 	assert.Equal(t, result.AverageResponseTime, float64(expectedDuration))
 }

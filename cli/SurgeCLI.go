@@ -94,7 +94,7 @@ func (surgeCLI *SurgeCLI) StartWorkerProcesses() {
 		// rather than a known range, which currently is very limiting
 		portNumber := 54322 + i
 		go func(port int) {
-			connection := surgeCLI.StartServer(portNumber)
+			connection := surgeCLI.StartServer(port)
 			syncLock.Lock()
 			surgeCLI.workers = append(surgeCLI.workers, connection)
 			syncLock.Unlock()
