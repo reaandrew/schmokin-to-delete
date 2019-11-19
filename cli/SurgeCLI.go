@@ -128,28 +128,8 @@ func (surgeCLI *SurgeCLI) ExecuteWorkerProcesses(ctx context.Context, lines []st
 	return
 }
 
-func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err error) {
-	var lines []string
-
-	if surgeCLI.urlFilePath == "" {
-		panic("No URL file supplied")
-	}
-
-	lines, err = utils.ReadFileToLines(surgeCLI.urlFilePath)
-	if err != nil {
-		panic(err)
-	}
+func (surgeCLI *SurgeCLI) StopWorkerProcesses(ctx context.Context) {
 	var wg = sync.WaitGroup{}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	fmt.Println("Starting the worker processes...")
-	surgeCLI.StartWorkerProcesses()
-
-	fmt.Println("Surging...")
-	responses := surgeCLI.ExecuteWorkerProcesses(ctx, lines)
-
-	fmt.Println("Stopping the worker processes...")
 	for _, connection := range surgeCLI.workers {
 		wg.Add(1)
 		go func(connection SurgeServiceClientConnection) {
@@ -164,6 +144,30 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 		}(connection)
 	}
 	wg.Wait()
+}
+
+func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err error) {
+	var lines []string
+
+	if surgeCLI.urlFilePath == "" {
+		panic("No URL file supplied")
+	}
+
+	lines, err = utils.ReadFileToLines(surgeCLI.urlFilePath)
+	if err != nil {
+		panic(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	fmt.Println("Starting the worker processes...")
+	surgeCLI.StartWorkerProcesses()
+
+	fmt.Println("Surging...")
+	responses := surgeCLI.ExecuteWorkerProcesses(ctx, lines)
+
+	fmt.Println("Stopping the worker processes...")
+	surgeCLI.StopWorkerProcesses(ctx)
 
 	result = server.MergeResponses(responses)
 	return
