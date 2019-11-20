@@ -52,8 +52,6 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 	}
 
 	cmd := exec.Command(ex, "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
 	err = cmd.Start()
 	if err != nil {
 		panic(err)

@@ -18,9 +18,9 @@ package main
 import "github.com/reaandrew/surge/cmd"
 
 var (
-	CommitHash string
-	Version    string
-	BuildTime  string
+	CommitHash string //nolint
+	Version    string //nolint
+	BuildTime  string //nolint
 )
 
 func main() {

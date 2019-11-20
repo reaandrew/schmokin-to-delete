@@ -11,7 +11,6 @@ func (timer *DefaultStoppableTimer) Stop() time.Duration {
 }
 
 type DefaultTimer struct {
-	start time.Time
 }
 
 func (timer *DefaultTimer) Start() StoppableTimer {
