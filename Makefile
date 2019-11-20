@@ -36,6 +36,7 @@ install_linter:
 
 .PHONY: lint
 lint:
+	echo $$GO_PATH
 	golangci-lint run
 
 surge:
