@@ -36,8 +36,7 @@ install_linter:
 
 .PHONY: lint
 lint:
-	echo $$GO_PATH
-	golangci-lint run
+	./bin/golangci-lint run
 
 surge:
 	go build
