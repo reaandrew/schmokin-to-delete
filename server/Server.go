@@ -63,6 +63,7 @@ func (s *surgeRemoteService) Kill(ctx context.Context, in *empty.Empty) (*KillRe
 
 func StartServer(address string) {
 	lis, err := net.Listen("tcp", address)
+	log.Println("Server starting on " + address)
 	if err != nil {
 		log.Fatalf("Failed to listen on port: %v", err)
 	}

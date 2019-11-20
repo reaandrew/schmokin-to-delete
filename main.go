@@ -17,6 +17,12 @@ package main
 
 import "github.com/reaandrew/surge/cmd"
 
+var (
+	CommitHash string
+	Version    string
+	BuildTime  string
+)
+
 func main() {
 	cmd.Execute()
 }

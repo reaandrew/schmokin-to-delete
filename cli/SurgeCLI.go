@@ -37,14 +37,28 @@ type SurgeCLI struct {
 	iterations  int
 }
 
+const SurgePathVar = "SURGE_PATH"
+
 func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 	var err error
-	cmd := exec.Command("./surge", "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
-	cmd.Stdout = os.Stdout
+
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+
+	if os.Getenv(SurgePathVar) != "" {
+		ex = os.Getenv(SurgePathVar)
+	}
+
+	cmd := exec.Command(ex, "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 	err = cmd.Start()
 	if err != nil {
 		panic(err)
 	}
+
 	// This would be better to have a synchronous wait timer
 	// that would panic after a given threshold.
 	// e.g. WaitFor(endpoint, 10 * time.Second)
@@ -81,8 +95,9 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 }
 
 func (surgeCLI *SurgeCLI) RunServer() (result *service.SurgeResult, err error) {
+	log.Println(fmt.Sprintf("Starting server %s %d", surgeCLI.serverHost, surgeCLI.serverPort))
 	server.StartServer(fmt.Sprintf("%v:%v", surgeCLI.serverHost, surgeCLI.serverPort))
-	return
+	return &service.SurgeResult{}, nil
 }
 
 func (surgeCLI *SurgeCLI) StartWorkerProcesses() {

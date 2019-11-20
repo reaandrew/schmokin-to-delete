@@ -107,6 +107,9 @@ to quickly create a Cobra application.`,
 			Build()
 
 		result, err := surgeClient.Run()
+		if err != nil {
+			panic(err)
+		}
 
 		transactions := fmt.Sprintf("%v", result.Transactions)
 		availability := fmt.Sprintf("%v", result.Availability*100)
