@@ -4,8 +4,11 @@ go 1.13
 
 require (
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dlclark/regexp2 v1.2.0 // indirect
+	github.com/dop251/goja v0.0.0-20190912223329-aa89e6a4c733
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/go-sourcemap/sourcemap v2.1.2+incompatible // indirect
 	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/hcl v1.0.0
