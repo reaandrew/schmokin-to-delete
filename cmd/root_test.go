@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/reaandrew/surge/cmd"
-	"github.com/reaandrew/surge/utils"
+	"github.com/reaandrew/schmokin/cmd"
+	"github.com/reaandrew/schmokin/utils"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )

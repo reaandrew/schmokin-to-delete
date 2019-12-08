@@ -1,12 +1,12 @@
 package cli
 
-type SurgeCLIBuilder struct {
-	cli *SurgeCLI
+type SchmokinCLIBuilder struct {
+	cli *SchmokinCLI
 }
 
-func NewSurgeCLIBuilder() *SurgeCLIBuilder {
-	return &SurgeCLIBuilder{
-		cli: &SurgeCLI{
+func NewSchmokinCLIBuilder() *SchmokinCLIBuilder {
+	return &SchmokinCLIBuilder{
+		cli: &SchmokinCLI{
 			workerCount: 1,
 			iterations:  1,
 			processes:   1,
@@ -17,46 +17,46 @@ func NewSurgeCLIBuilder() *SurgeCLIBuilder {
 	}
 }
 
-func (builder *SurgeCLIBuilder) SetWorkers(count int) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetWorkers(count int) *SchmokinCLIBuilder {
 	builder.cli.workerCount = count
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetIterations(count int) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetIterations(count int) *SchmokinCLIBuilder {
 	builder.cli.iterations = count
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetRandom(value bool) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetRandom(value bool) *SchmokinCLIBuilder {
 	builder.cli.random = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetURLFilePath(value string) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetURLFilePath(value string) *SchmokinCLIBuilder {
 	builder.cli.urlFilePath = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetProcesses(value int) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetProcesses(value int) *SchmokinCLIBuilder {
 	builder.cli.processes = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetServerHost(value string) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetServerHost(value string) *SchmokinCLIBuilder {
 	builder.cli.serverHost = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetServerPort(value int) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetServerPort(value int) *SchmokinCLIBuilder {
 	builder.cli.serverPort = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) SetServer(value bool) *SurgeCLIBuilder {
+func (builder *SchmokinCLIBuilder) SetServer(value bool) *SchmokinCLIBuilder {
 	builder.cli.server = value
 	return builder
 }
 
-func (builder *SurgeCLIBuilder) Build() *SurgeCLI {
+func (builder *SchmokinCLIBuilder) Build() *SchmokinCLI {
 	return builder.cli
 }

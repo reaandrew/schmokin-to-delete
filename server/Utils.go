@@ -1,12 +1,12 @@
 package server
 
 import (
-	"github.com/reaandrew/surge/service"
-	"github.com/reaandrew/surge/utils"
+	"github.com/reaandrew/schmokin/service"
+	"github.com/reaandrew/schmokin/utils"
 )
 
-func MergeResponses(responses []*SurgeResponse) (result *service.SurgeResult) {
-	result = &service.SurgeResult{}
+func MergeResponses(responses []*SchmokinResponse) (result *service.SchmokinResult) {
+	result = &service.SchmokinResult{}
 	availabilities := []float64{}
 	responseTimes := []float64{}
 	concurrencyRate := []float64{}

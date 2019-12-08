@@ -2,7 +2,7 @@ package service
 
 import "time"
 
-type SurgeResult struct {
+type SchmokinResult struct {
 	Transactions           int
 	Availability           float64
 	ElapsedTime            time.Duration

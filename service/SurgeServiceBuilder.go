@@ -4,15 +4,15 @@ import (
 	"sync"
 
 	"github.com/rcrowley/go-metrics"
-	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
-	"github.com/reaandrew/surge/utils"
+	schmokinHTTP "github.com/reaandrew/schmokin/infrastructure/http"
+	"github.com/reaandrew/schmokin/utils"
 )
 
-type SurgeServiceBuilder struct {
-	service *SurgeService
+type SchmokinServiceBuilder struct {
+	service *SchmokinService
 }
 
-func NewSurgeServiceBuilder() *SurgeServiceBuilder {
+func NewSchmokinServiceBuilder() *SchmokinServiceBuilder {
 	s := metrics.NewExpDecaySample(1028, 0.015) // or metrics.NewUniformSample(1028)
 	h := metrics.NewHistogram(s)
 	m := metrics.NewMeter()
@@ -22,11 +22,11 @@ func NewSurgeServiceBuilder() *SurgeServiceBuilder {
 	sendRate := metrics.NewMeter()
 	receiveRate := metrics.NewMeter()
 
-	return &SurgeServiceBuilder{
-		service: &SurgeService{
+	return &SchmokinServiceBuilder{
+		service: &SchmokinService{
 			workerCount:        1,
 			iterations:         1,
-			httpClient:         surgeHTTP.NewDefaultClient(),
+			httpClient:         schmokinHTTP.NewDefaultClient(),
 			timer:              &utils.DefaultTimer{},
 			lock:               sync.Mutex{},
 			waitGroup:          sync.WaitGroup{},
@@ -40,31 +40,31 @@ func NewSurgeServiceBuilder() *SurgeServiceBuilder {
 	}
 }
 
-func (builder *SurgeServiceBuilder) SetWorkers(count int) *SurgeServiceBuilder {
+func (builder *SchmokinServiceBuilder) SetWorkers(count int) *SchmokinServiceBuilder {
 	builder.service.workerCount = count
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) SetIterations(count int) *SurgeServiceBuilder {
+func (builder *SchmokinServiceBuilder) SetIterations(count int) *SchmokinServiceBuilder {
 	builder.service.iterations = count
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) SetRandom(value bool) *SurgeServiceBuilder {
+func (builder *SchmokinServiceBuilder) SetRandom(value bool) *SchmokinServiceBuilder {
 	builder.service.random = value
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) SetClient(client surgeHTTP.Client) *SurgeServiceBuilder {
+func (builder *SchmokinServiceBuilder) SetClient(client schmokinHTTP.Client) *SchmokinServiceBuilder {
 	builder.service.httpClient = client
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) SetTimer(timer utils.Timer) *SurgeServiceBuilder {
+func (builder *SchmokinServiceBuilder) SetTimer(timer utils.Timer) *SchmokinServiceBuilder {
 	builder.service.timer = timer
 	return builder
 }
 
-func (builder *SurgeServiceBuilder) Build() *SurgeService {
+func (builder *SchmokinServiceBuilder) Build() *SchmokinService {
 	return builder.service
 }

@@ -25,9 +25,9 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/reaandrew/surge/cli"
-	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
-	"github.com/reaandrew/surge/utils"
+	"github.com/reaandrew/schmokin/cli"
+	schmokinHTTP "github.com/reaandrew/schmokin/infrastructure/http"
+	"github.com/reaandrew/schmokin/utils"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -54,7 +54,7 @@ var (
 	serverPort      int
 	workerEndpoints []string
 	Timer           utils.Timer      = &utils.DefaultTimer{}
-	Client          surgeHTTP.Client = surgeHTTP.NewDefaultClient()
+	Client          schmokinHTTP.Client = schmokinHTTP.NewDefaultClient()
 )
 
 const (
@@ -78,7 +78,7 @@ const (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "surge",
+	Use:   "schmokin",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -95,7 +95,7 @@ to quickly create a Cobra application.`,
 |____/ \___/|_| \_\\____|_____|
 		`)
 
-		surgeClient := cli.NewSurgeCLIBuilder().
+		schmokinClient := cli.NewSchmokinCLIBuilder().
 			SetURLFilePath(urlFile).
 			SetRandom(random).
 			SetWorkers(workerCount).
@@ -106,7 +106,7 @@ to quickly create a Cobra application.`,
 			SetProcesses(processes).
 			Build()
 
-		result, err := surgeClient.Run()
+		result, err := schmokinClient.Run()
 		if err != nil {
 			panic(err)
 		}
@@ -177,7 +177,7 @@ to quickly create a Cobra application.`,
 			}
 			var resultsFile *os.File
 			defer resultsFile.Close()
-			name := fmt.Sprintf("%v/.surge.results", usr.HomeDir)
+			name := fmt.Sprintf("%v/.schmokin.results", usr.HomeDir)
 			if _, err := os.Stat(name); os.IsNotExist(err) {
 				// path/to/whatever does not exist
 				resultsFile, err = os.Create(name)
@@ -249,7 +249,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.surge.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.schmokin.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&urlFile, "urls", "u", "", "The urls file to use")
 	RootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "The output format to use for the results")
 	RootCmd.PersistentFlags().BoolVarP(&random, "random", "r", false, "Read the urls in random order")
@@ -279,9 +279,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".surge" (without extension).
+		// Search config in home directory with name ".schmokin" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".surge")
+		viper.SetConfigName(".schmokin")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

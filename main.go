@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/reaandrew/surge/cmd"
+import "github.com/reaandrew/schmokin/cmd"
 
 var (
 	CommitHash string //nolint

@@ -7,29 +7,29 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
-	surgeHTTP "github.com/reaandrew/surge/infrastructure/http"
-	"github.com/reaandrew/surge/service"
-	"github.com/reaandrew/surge/utils"
+	schmokinHTTP "github.com/reaandrew/schmokin/infrastructure/http"
+	"github.com/reaandrew/schmokin/service"
+	"github.com/reaandrew/schmokin/utils"
 	grpc "google.golang.org/grpc"
 )
 
 var server *grpc.Server
 
-type surgeRemoteService struct {
+type schmokinRemoteService struct {
 }
 
-func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeResponse, error) {
-	surgeService := service.NewSurgeServiceBuilder().
-		SetClient(surgeHTTP.NewDefaultClient()).
+func (s *schmokinRemoteService) Run(ctx context.Context, in *SchmokinRequest) (*SchmokinResponse, error) {
+	schmokinService := service.NewSchmokinServiceBuilder().
+		SetClient(schmokinHTTP.NewDefaultClient()).
 		SetIterations(int(in.Iterations)).
 		SetRandom(in.Random).
 		SetTimer(utils.NewDefaultTimer()).
 		SetWorkers(int(in.WorkerCount)).
 		Build()
 
-	result := surgeService.Execute(in.Lines)
+	result := schmokinService.Execute(in.Lines)
 
-	response := &SurgeResponse{
+	response := &SchmokinResponse{
 		Transactions:           int32(result.Transactions),
 		Availability:           result.Availability,
 		ElapsedTime:            int64(result.ElapsedTime),
@@ -48,13 +48,13 @@ func (s *surgeRemoteService) Run(ctx context.Context, in *SurgeRequest) (*SurgeR
 	return response, nil
 }
 
-func (s *surgeRemoteService) Ping(ctx context.Context, in *empty.Empty) (*PingResponse, error) {
+func (s *schmokinRemoteService) Ping(ctx context.Context, in *empty.Empty) (*PingResponse, error) {
 	return &PingResponse{
 		Healthy: true,
 	}, nil
 }
 
-func (s *surgeRemoteService) Kill(ctx context.Context, in *empty.Empty) (*KillResponse, error) {
+func (s *schmokinRemoteService) Kill(ctx context.Context, in *empty.Empty) (*KillResponse, error) {
 	server.Stop()
 	return &KillResponse{
 		Killed: true,
@@ -69,7 +69,7 @@ func StartServer(address string) {
 	}
 
 	server = grpc.NewServer()
-	RegisterSurgeServiceServer(server, &surgeRemoteService{})
+	RegisterSchmokinServiceServer(server, &schmokinRemoteService{})
 
 	if err := server.Serve(lis); err != nil {
 		log.Fatal(errors.Wrap(err, "Failed to start server!"))

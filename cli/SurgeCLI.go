@@ -12,20 +12,20 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/reaandrew/surge/server"
-	"github.com/reaandrew/surge/service"
-	"github.com/reaandrew/surge/utils"
+	"github.com/reaandrew/schmokin/server"
+	"github.com/reaandrew/schmokin/service"
+	"github.com/reaandrew/schmokin/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
 
-type SurgeServiceClientConnection struct {
-	Client     server.SurgeServiceClient
+type SchmokinServiceClientConnection struct {
+	Client     server.SchmokinServiceClient
 	Connection *grpc.ClientConn
 }
 
-type SurgeCLI struct {
-	workers []SurgeServiceClientConnection
+type SchmokinCLI struct {
+	workers []SchmokinServiceClientConnection
 	//TODO: Create a configuration struct for these
 	urlFilePath string
 	server      bool
@@ -37,9 +37,9 @@ type SurgeCLI struct {
 	iterations  int
 }
 
-const SurgePathVar = "SURGE_PATH"
+const SchmokinPathVar = "SCHMOKIN_PATH"
 
-func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
+func (schmokinCLI *SchmokinCLI) StartServer(port int) SchmokinServiceClientConnection {
 	var err error
 
 	ex, err := os.Executable()
@@ -47,8 +47,8 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 		panic(err)
 	}
 
-	if os.Getenv(SurgePathVar) != "" {
-		ex = os.Getenv(SurgePathVar)
+	if os.Getenv(SchmokinPathVar) != "" {
+		ex = os.Getenv(SchmokinPathVar)
 	}
 
 	cmd := exec.Command(ex, "--server", "--server-host", "localhost", "--server-port", strconv.Itoa(port))
@@ -84,32 +84,32 @@ func (surgeCLI *SurgeCLI) StartServer(port int) SurgeServiceClientConnection {
 		log.Fatalf("did not connect: %v", err)
 	}
 
-	client := server.NewSurgeServiceClient(conn)
+	client := server.NewSchmokinServiceClient(conn)
 
-	return SurgeServiceClientConnection{
+	return SchmokinServiceClientConnection{
 		Connection: conn,
 		Client:     client,
 	}
 }
 
-func (surgeCLI *SurgeCLI) RunServer() (result *service.SurgeResult, err error) {
-	log.Println(fmt.Sprintf("Starting server %s %d", surgeCLI.serverHost, surgeCLI.serverPort))
-	server.StartServer(fmt.Sprintf("%v:%v", surgeCLI.serverHost, surgeCLI.serverPort))
-	return &service.SurgeResult{}, nil
+func (schmokinCLI *SchmokinCLI) RunServer() (result *service.SchmokinResult, err error) {
+	log.Println(fmt.Sprintf("Starting server %s %d", schmokinCLI.serverHost, schmokinCLI.serverPort))
+	server.StartServer(fmt.Sprintf("%v:%v", schmokinCLI.serverHost, schmokinCLI.serverPort))
+	return &service.SchmokinResult{}, nil
 }
 
-func (surgeCLI *SurgeCLI) StartWorkerProcesses() {
+func (schmokinCLI *SchmokinCLI) StartWorkerProcesses() {
 	var wg = sync.WaitGroup{}
 	var syncLock = sync.Mutex{}
-	for i := 0; i < surgeCLI.processes; i++ {
+	for i := 0; i < schmokinCLI.processes; i++ {
 		wg.Add(1)
 		// This needs to use some sort of freeport package to find any port which is going
 		// rather than a known range, which currently is very limiting
 		portNumber := 54322 + i
 		go func(port int) {
-			connection := surgeCLI.StartServer(port)
+			connection := schmokinCLI.StartServer(port)
 			syncLock.Lock()
-			surgeCLI.workers = append(surgeCLI.workers, connection)
+			schmokinCLI.workers = append(schmokinCLI.workers, connection)
 			syncLock.Unlock()
 			wg.Done()
 		}(portNumber)
@@ -117,17 +117,17 @@ func (surgeCLI *SurgeCLI) StartWorkerProcesses() {
 	wg.Wait()
 }
 
-func (surgeCLI *SurgeCLI) ExecuteWorkerProcesses(ctx context.Context, lines []string) (responses []*server.SurgeResponse) {
+func (schmokinCLI *SchmokinCLI) ExecuteWorkerProcesses(ctx context.Context, lines []string) (responses []*server.SchmokinResponse) {
 	var wg = sync.WaitGroup{}
 	var lock = sync.Mutex{}
-	for _, connection := range surgeCLI.workers {
+	for _, connection := range schmokinCLI.workers {
 		wg.Add(1)
-		go func(connection SurgeServiceClientConnection) {
-			response, err := connection.Client.Run(ctx, &server.SurgeRequest{
-				Iterations:  int32(surgeCLI.iterations),
+		go func(connection SchmokinServiceClientConnection) {
+			response, err := connection.Client.Run(ctx, &server.SchmokinRequest{
+				Iterations:  int32(schmokinCLI.iterations),
 				Lines:       lines,
-				Random:      surgeCLI.random,
-				WorkerCount: int32(surgeCLI.workerCount),
+				Random:      schmokinCLI.random,
+				WorkerCount: int32(schmokinCLI.workerCount),
 			})
 			lock.Lock()
 			responses = append(responses, response)
@@ -144,11 +144,11 @@ func (surgeCLI *SurgeCLI) ExecuteWorkerProcesses(ctx context.Context, lines []st
 	return
 }
 
-func (surgeCLI *SurgeCLI) StopWorkerProcesses(ctx context.Context) {
+func (schmokinCLI *SchmokinCLI) StopWorkerProcesses(ctx context.Context) {
 	var wg = sync.WaitGroup{}
-	for _, connection := range surgeCLI.workers {
+	for _, connection := range schmokinCLI.workers {
 		wg.Add(1)
-		go func(connection SurgeServiceClientConnection) {
+		go func(connection SchmokinServiceClientConnection) {
 			utils.WaitUtil{
 				Timeout: 10 * time.Second,
 				Backoff: 250 * time.Millisecond,
@@ -162,14 +162,14 @@ func (surgeCLI *SurgeCLI) StopWorkerProcesses(ctx context.Context) {
 	wg.Wait()
 }
 
-func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err error) {
+func (schmokinCLI *SchmokinCLI) RunController() (result *service.SchmokinResult, err error) {
 	var lines []string
 
-	if surgeCLI.urlFilePath == "" {
+	if schmokinCLI.urlFilePath == "" {
 		panic("No URL file supplied")
 	}
 
-	lines, err = utils.ReadFileToLines(surgeCLI.urlFilePath)
+	lines, err = utils.ReadFileToLines(schmokinCLI.urlFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -177,22 +177,22 @@ func (surgeCLI *SurgeCLI) RunController() (result *service.SurgeResult, err erro
 	defer cancel()
 
 	fmt.Println("Starting the worker processes...")
-	surgeCLI.StartWorkerProcesses()
+	schmokinCLI.StartWorkerProcesses()
 
 	fmt.Println("Surging...")
-	responses := surgeCLI.ExecuteWorkerProcesses(ctx, lines)
+	responses := schmokinCLI.ExecuteWorkerProcesses(ctx, lines)
 
 	fmt.Println("Stopping the worker processes...")
-	surgeCLI.StopWorkerProcesses(ctx)
+	schmokinCLI.StopWorkerProcesses(ctx)
 
 	result = server.MergeResponses(responses)
 	return
 }
 
-func (surgeCLI *SurgeCLI) Run() (result *service.SurgeResult, err error) {
-	if surgeCLI.server {
-		return surgeCLI.RunServer()
+func (schmokinCLI *SchmokinCLI) Run() (result *service.SchmokinResult, err error) {
+	if schmokinCLI.server {
+		return schmokinCLI.RunServer()
 	}
 
-	return surgeCLI.RunController()
+	return schmokinCLI.RunController()
 }
